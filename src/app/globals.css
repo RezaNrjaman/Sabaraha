@@ -1,1 +1,92 @@
 @import "tailwindcss";
+
+@theme {
+  --color-primary-50: #eef6f0;
+  --color-primary-100: #d9ebdf;
+  --color-primary-500: #3a9560;
+  --color-primary-600: #2b7a4b;
+  --color-primary-700: #1f5f3a;
+  --color-primary-900: #123a25;
+
+  --color-bg: #f5f7f3;
+  --color-surface: #ffffff;
+  --color-line: #e3e8e1;
+  --color-ink: #1c2620;
+  --color-ink-muted: #56635b;
+
+  --color-naik: #b3261e;
+  --color-naik-bg: #fdecea;
+  --color-turun: #1e7a3e;
+  --color-turun-bg: #e6f4ea;
+  --color-stabil: #5f6b64;
+  --color-stabil-bg: #eef1ee;
+  --color-seimbang: #1f6fa8;
+  --color-seimbang-bg: #e7f1f8;
+  --color-defisit: #b3261e;
+  --color-defisit-bg: #fdecea;
+  --color-perhatian: #8a5a00;
+  --color-perhatian-bg: #fff4d6;
+  --color-kunyit: #f2b01e;
+  --color-kunyit-ink: #3d2b00;
+
+  --radius-card: 16px;
+  --radius-ctl: 12px;
+
+  --shadow-card: 0 1px 2px rgba(16, 24, 20, 0.04), 0 8px 24px rgba(16, 24, 20, 0.06);
+
+  --font-sans: var(--font-jakarta), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@layer base {
+  html {
+    font-size: 100%;
+    scroll-behavior: smooth;
+  }
+
+  html[data-text-size="besar"] {
+    font-size: 115%;
+  }
+
+  html[data-text-size="sangat-besar"] {
+    font-size: 130%;
+  }
+
+  body {
+    @apply bg-bg font-sans text-ink antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-bg;
+  }
+
+  ::selection {
+    @apply bg-primary-100 text-primary-900;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
