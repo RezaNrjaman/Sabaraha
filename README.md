@@ -19,7 +19,7 @@ Dashboard harga dan ketersediaan pangan Kota Bandung. Frontend ini membaca data 
 - `/tren` — **Tren Harga**: pergerakan 1–5 komoditas, perbandingan berbasis indeks, filter rentang & agregasi.
 - `/periode` — **Periode & Musiman**: harga dengan penanda Ramadan, Idul Fitri, Idul Adha, Natal–Tahun Baru, musim hujan; statistik kenaikan per periode.
 - `/volatilitas` — **Volatilitas**: peringkat koefisien variasi, deteksi lonjakan (±2 simpangan baku).
-- `/ketersediaan` — **Ketersediaan**: status neraca, pasokan vs kebutuhan, stok akhir. **Data simulasi (dummy)**.
+- `/ketersediaan` — **Ketersediaan**: status neraca, pasokan vs kebutuhan, stok akhir. **Data simulasi (dummy)**. Toggle rentang: riwayat (12 bln/3 thn/penuh), **proyeksi 2026–2032**, atau semua; proyeksi diberi label "Proyeksi simulasi".
 - `/prediksi` — **Prediksi**: median kenaikan per periode berikutnya dari pola historis.
 - `/info` — **Info Data**: sumber, cakupan, metode, dan keterbatasan data.
 
@@ -43,6 +43,15 @@ API_BASE_URL=https://sabaraha-nine.vercel.app/api/v1
 ```
 
 Salin `.env.example` ke `.env.local`. Saat pengembangan lokal, arahkan ke API produksi di atas, atau ke instance `be/` lokal (mis. `http://localhost:3000/api/v1`).
+
+## Deployment
+
+Aplikasi ini di-host di Vercel (proyek `sabaraha-fe`):
+
+- **Frontend**: https://sabaraha-fe.vercel.app
+- **API backend**: https://sabaraha-nine.vercel.app/api/v1
+
+Environment variable `API_BASE_URL` diatur di dashboard Vercel (Environment → Production) dan mengarah ke API di atas. Build Next.js memakai `next build`; cukup `vercel --prod` dari folder `fe/`.
 
 ## Perintah
 
@@ -90,6 +99,7 @@ Semua layout grid responsif memberi `grid-cols-1` sebagai kolom dasar (mis. `gri
 
 - **`null` = data tidak tersedia**, selalu ditampilkan sebagai `-`, **tidak pernah** diubah jadi `0` atau `Rp 0`.
 - **Data ketersediaan adalah simulasi (dummy)** — diberi label `Simulasi`/`Data simulasi` di UI. Jangan dikutip sebagai data resmi.
+- **Ketersediaan punya `jenis_data`**: `riwayat` (historis s.d. Okt 2026) dan `proyeksi` (simulasi tren Nov 2026–Des 2032). Proyeksi **bukan ramalan resmi** dan diberi label "Proyeksi simulasi". "Bulan terkini" selalu memakai riwayat terakhir, tidak pernah proyeksi.
 - **Tidak ada angka backtest yang dibuat** — API tidak mengekspos backtest per kejadian, dan UI menyatakan hal ini di `/prediksi` dan `/info`.
 - Harga hanya tersedia hari kerja; akhir pekan/libur tidak ada baris (garis tidak disambung melewati nilai kosong).
 
