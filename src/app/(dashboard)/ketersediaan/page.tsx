@@ -8,11 +8,11 @@ import { FilterChips, ResetFilter } from "@/components/filters/filter-chips";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
-import { SimulationChip, StatusChip } from "@/components/ui/status-chip";
+import { ProjectionChip, SimulationChip, StatusChip } from "@/components/ui/status-chip";
 import { fetchApiData } from "@/lib/api";
 import { ambilDaftar } from "@/lib/filters";
 import { formatBulan, formatHari, formatPersen, formatTon } from "@/lib/format";
-import { buildQuery, bulanSebelum } from "@/lib/query";
+import { buildQuery, bulanSebelum, pilihanParam } from "@/lib/query";
 import type {
   InfoData,
   Ketersediaan,
@@ -24,11 +24,17 @@ export const metadata = {
   title: "Ketersediaan",
 };
 
-const OPSI_BULAN = [
-  { value: "12", label: "12 bulan" },
-  { value: "36", label: "3 tahun" },
-  { value: "72", label: "Semua data" },
+// Rentang data ketersediaan. "riwayat" memakai bulan riwayat terakhir,
+// "proyeksi" menampilkan simulasi mendatang s.d. Des 2032.
+const OPSI_RENTANG = [
+  { value: "12", label: "12 bulan (riwayat)" },
+  { value: "36", label: "3 tahun (riwayat)" },
+  { value: "riwayat", label: "Riwayat penuh" },
+  { value: "proyeksi", label: "Proyeksi 2026–2032" },
+  { value: "semua", label: "Semua 2021–2032" },
 ];
+
+const RENTANG_SAH = OPSI_RENTANG.map((opsi) => opsi.value);
 
 export default async function KetersediaanPage({
   searchParams,
@@ -44,12 +50,32 @@ export default async function KetersediaanPage({
   const bawaan = namaUtama.includes("Beras") ? "Beras" : (namaUtama[0] ?? "Beras");
   const [dipilih] = ambilDaftar(sp.komoditas, [bawaan]);
   const namaAman = namaUtama.includes(dipilih) ? dipilih : bawaan;
-  const jumlahBulan = [12, 36, 72].includes(Number(sp.bulan)) ? Number(sp.bulan) : 12;
-  const sampai = info.tanggal_data_terakhir;
-  const dari = bulanSebelum(sampai, jumlahBulan);
+  const rentang = RENTANG_SAH.includes(pilihanParam(sp.rentang, "12"))
+    ? pilihanParam(sp.rentang, "12")
+    : "12";
+
+  // Susun query sesuai rentang. Proyeksi dan semua tidak dibatasi tanggal;
+  // riwayat dibatasi bulan riwayat terakhir agar tidak ikut proyeksi.
+  let jenis: "riwayat" | "proyeksi" | undefined;
+  let dari: string | undefined;
+  let sampai: string | undefined;
+  if (rentang === "proyeksi") {
+    jenis = "proyeksi";
+  } else if (rentang === "semua") {
+    jenis = undefined;
+  } else {
+    jenis = "riwayat";
+    sampai = info.tanggal_data_terakhir;
+    dari = rentang === "riwayat" ? undefined : bulanSebelum(sampai, Number(rentang));
+  }
+
   const rows = await fetchApiData<Ketersediaan[]>(
-    `/ketersediaan${buildQuery({ komoditas: namaAman, dari, sampai })}`,
+    `/ketersediaan${buildQuery({ komoditas: namaAman, jenis, dari, sampai })}`,
   );
+  const menampilkanProyeksi = rows.some((row) => row.jenis_data === "proyeksi");
+  const campuran = menampilkanProyeksi && rows.some((row) => row.jenis_data === "riwayat");
+  const labelRentang = OPSI_RENTANG.find((opsi) => opsi.value === rentang)?.label ?? "12 bulan";
+
   const donut = [
     { name: "Surplus", value: status.jumlah.surplus, color: "#1E7A3E" },
     { name: "Seimbang", value: status.jumlah.seimbang, color: "#1F6FA8" },
@@ -92,16 +118,28 @@ export default async function KetersediaanPage({
             />
           </div>
           <div>
-            <p className="mb-2 text-sm font-semibold text-ink">Rentang bulan</p>
+            <p className="mb-2 text-sm font-semibold text-ink">Rentang data</p>
             <FilterChips
-              param="bulan"
-              label="Rentang bulan ketersediaan"
-              options={OPSI_BULAN}
-              selected={[String(jumlahBulan)]}
+              param="rentang"
+              label="Rentang data ketersediaan"
+              options={OPSI_RENTANG}
+              selected={[rentang]}
             />
           </div>
         </div>
       </Card>
+
+      {menampilkanProyeksi ? (
+        <div className="mb-6 flex items-start gap-3 rounded-card border border-primary-200 bg-primary-50 p-4">
+          <ProjectionChip />
+          <p className="text-sm leading-6 text-ink">
+            Menampilkan <span className="font-semibold">{labelRentang}</span>. Bagian{" "}
+            <span className="font-semibold">proyeksi</span> (Nov 2026–Des 2032) adalah simulasi
+            tren, bukan ramalan resmi. Status neraca terkini di atas tetap memakai bulan riwayat
+            terakhir (Okt 2026), tidak termasuk proyeksi.
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <Card className="xl:col-span-5">
@@ -131,7 +169,7 @@ export default async function KetersediaanPage({
         <Card className="xl:col-span-7">
           <CardHeader
             title="Status per Komoditas"
-            description={`Bulan terbaru ${formatBulan(status.bulan)}`}
+            description={`Bulan riwayat terbaru ${formatBulan(status.bulan)}`}
             action={<SimulationChip />}
           />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -159,7 +197,7 @@ export default async function KetersediaanPage({
           <ChartFrame
             className="mt-6"
             title={`Pasokan vs Kebutuhan ${namaAman}`}
-            description="Per bulan, dalam ton. Data simulasi."
+            description={`Per bulan, dalam ton. Rentang: ${labelRentang}. Data simulasi.${menampilkanProyeksi ? " Bagian proyeksi disimpan sebagai simulasi tren." : ""}`}
             summary={`Grafik batang pasokan dan kebutuhan ${namaAman} per bulan dari ${formatBulan(rows[0]?.bulan)} sampai ${formatBulan(rows.at(-1)?.bulan)}.`}
             table={
               <table className="w-full min-w-[520px] border-collapse text-sm">
@@ -169,6 +207,7 @@ export default async function KetersediaanPage({
                     <th className="px-3 py-2 font-medium">Pasokan</th>
                     <th className="px-3 py-2 font-medium">Kebutuhan</th>
                     <th className="px-3 py-2 font-medium">Stok akhir</th>
+                    {campuran ? <th className="px-3 py-2 font-medium">Jenis</th> : null}
                   </tr>
                 </thead>
                 <tbody>
@@ -178,6 +217,11 @@ export default async function KetersediaanPage({
                       <td className="px-3 py-2">{formatTon(row.pasokan_ton)}</td>
                       <td className="px-3 py-2">{formatTon(row.kebutuhan_ton)}</td>
                       <td className="px-3 py-2">{formatTon(row.stok_akhir_ton)}</td>
+                      {campuran ? (
+                        <td className="px-3 py-2">
+                          {row.jenis_data === "proyeksi" ? "Proyeksi" : "Riwayat"}
+                        </td>
+                      ) : null}
                     </tr>
                   ))}
                 </tbody>
@@ -201,7 +245,7 @@ export default async function KetersediaanPage({
             <ChartFrame
               className="xl:col-span-8"
               title={`Stok Akhir ${namaAman}`}
-              description="Sisa stok pada akhir bulan, dalam ton. Data simulasi."
+              description={`Sisa stok pada akhir bulan, dalam ton. Rentang: ${labelRentang}. Data simulasi.${menampilkanProyeksi ? " Bagian proyeksi disimpan sebagai simulasi tren." : ""}`}
               summary={`Grafik stok akhir ${namaAman} per bulan dari ${formatBulan(rows[0]?.bulan)} sampai ${formatBulan(rows.at(-1)?.bulan)}.`}
               table={
                 <table className="w-full min-w-[420px] border-collapse text-sm">
@@ -210,6 +254,7 @@ export default async function KetersediaanPage({
                       <th className="px-3 py-2 font-medium">Bulan</th>
                       <th className="px-3 py-2 font-medium">Stok akhir</th>
                       <th className="px-3 py-2 font-medium">Ketahanan</th>
+                      {campuran ? <th className="px-3 py-2 font-medium">Jenis</th> : null}
                     </tr>
                   </thead>
                   <tbody>
@@ -218,6 +263,11 @@ export default async function KetersediaanPage({
                         <td className="px-3 py-2">{formatBulan(row.bulan)}</td>
                         <td className="px-3 py-2">{formatTon(row.stok_akhir_ton)}</td>
                         <td className="px-3 py-2">{formatHari(row.ketahanan_stok_hari)}</td>
+                        {campuran ? (
+                          <td className="px-3 py-2">
+                            {row.jenis_data === "proyeksi" ? "Proyeksi" : "Riwayat"}
+                          </td>
+                        ) : null}
                       </tr>
                     ))}
                   </tbody>
@@ -236,9 +286,19 @@ export default async function KetersediaanPage({
 
             <Card className="xl:col-span-4">
               <CardHeader
-                title="Ringkasan Bulan Terbaru"
+                title={
+                  menampilkanProyeksi && statusDipilih?.jenis_data === "proyeksi"
+                    ? "Ringkasan Bulan Proyeksi"
+                    : "Ringkasan Bulan Terbaru"
+                }
                 description={statusDipilih ? formatBulan(statusDipilih.bulan) : "-"}
-                action={<SimulationChip />}
+                action={
+                  statusDipilih?.jenis_data === "proyeksi" ? (
+                    <ProjectionChip />
+                  ) : (
+                    <SimulationChip />
+                  )
+                }
               />
               <dl className="space-y-4 text-sm">
                 <div className="flex items-center justify-between gap-3">
@@ -282,7 +342,8 @@ export default async function KetersediaanPage({
         <Package size={15} className="mt-0.5 shrink-0" />
         <p>
           Sumber harga: {info.sumber}. Data ketersediaan adalah simulasi yang dibuat untuk
-          demonstrasi, bukan data resmi.
+          demonstrasi, bukan data resmi. Data proyeksi (Nov 2026–Des 2032) adalah simulasi tren,
+          bukan ramalan.
         </p>
       </div>
     </>

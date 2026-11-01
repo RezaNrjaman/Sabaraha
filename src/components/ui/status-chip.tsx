@@ -98,6 +98,14 @@ export function SimulationChip({ className }: { className?: string }) {
   );
 }
 
+export function ProjectionChip({ className }: { className?: string }) {
+  return (
+    <Chip tone="primary" className={className} icon={<Info size={14} />}>
+      Proyeksi simulasi
+    </Chip>
+  );
+}
+
 export function ChangeChip({
   value,
   label,

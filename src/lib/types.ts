@@ -142,6 +142,7 @@ export interface Ketersediaan {
   stok_akhir_ton: number;
   ketahanan_stok_hari: number;
   status_neraca: NeracaStatus;
+  jenis_data: "riwayat" | "proyeksi";
   is_dummy: boolean;
 }
 
@@ -155,6 +156,7 @@ export interface StatusKetersediaan {
     status_neraca: NeracaStatus;
     rasio_neraca_persen: number;
   }>;
+  jenis_data: "riwayat" | "proyeksi";
   is_dummy: boolean;
   catatan: string;
 }
