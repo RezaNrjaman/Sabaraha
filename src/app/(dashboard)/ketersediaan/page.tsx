@@ -164,11 +164,11 @@ export default async function KetersediaanPage({
             title="Status per Komoditas"
             description={`Bulan riwayat terbaru ${formatBulan(status.bulan)}`}
           />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
             {status.komoditas.map((item) => (
-              <div key={item.komoditas_id} className="rounded-ctl border border-line p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-semibold text-ink">{item.nama}</p>
+              <div key={item.komoditas_id} className="min-w-0 rounded-ctl border border-line p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="min-w-0 font-semibold leading-5 text-ink">{item.nama}</p>
                   <StatusChip status={item.status_neraca} />
                 </div>
                 <p className="mt-2 text-sm text-ink-muted">

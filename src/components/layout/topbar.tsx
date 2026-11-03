@@ -59,16 +59,9 @@ export function Topbar({
           <Chip
             tone={lama ? "naik" : "netral"}
             icon={lama ? <TriangleAlert size={14} /> : <CalendarCheck2 size={14} />}
-            className="hidden sm:inline-flex"
           >
-            Data terakhir: {formatTanggal(tanggal)}
-          </Chip>
-          <Chip
-            tone={lama ? "naik" : "netral"}
-            icon={lama ? <TriangleAlert size={14} /> : <CalendarCheck2 size={14} />}
-            className="sm:hidden"
-          >
-            {formatTanggal(tanggal)}
+            <span className="hidden sm:inline">Data terakhir: </span>
+            <time dateTime={tanggal ?? undefined}>{formatTanggal(tanggal)}</time>
           </Chip>
           <TextSize />
         </div>

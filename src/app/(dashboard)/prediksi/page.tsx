@@ -119,7 +119,7 @@ export default async function PrediksiPage({
               allowClear
             />
             <p className="mt-2 text-xs text-ink-muted">
-              Tanpa pilihan periode, API memakai periode terdekat setelah tanggal data terakhir.
+              Jika periode tidak dipilih, ditampilkan periode terdekat berikutnya.
             </p>
           </div>
         </div>
@@ -348,7 +348,7 @@ export default async function PrediksiPage({
               </table>
             </div>
             <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-muted">
-              Baseline: rata-rata 30 hari kalender sebelum periode, minimal 15 titik. Prediksi
+              Pembanding: harga rata-rata 30 hari sebelum periode, minimal 15 titik. Prediksi
               bukan jaminan dan tidak memperhitungkan kejadian luar biasa di masa depan.
             </p>
           </Card>

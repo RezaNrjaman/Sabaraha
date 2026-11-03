@@ -51,7 +51,7 @@ export default async function InfoPage() {
         <Card className="xl:col-span-7">
           <CardHeader
             title="Ringkasan Data"
-            description="Informasi yang dikirim langsung oleh API."
+            description="Informasi yang dikirim langsung oleh layanan data."
           />
           <dl>
             <BarisInfo label="Sumber harga" value={info.sumber} />
@@ -80,7 +80,7 @@ export default async function InfoPage() {
           <Card>
             <CardHeader
               title="Status Layanan"
-              description="Pemeriksaan langsung ke endpoint kesehatan API."
+              description="Pemeriksaan langsung ke layanan data."
             />
             <div className="flex flex-wrap items-center gap-2">
               <Chip
@@ -89,7 +89,7 @@ export default async function InfoPage() {
                   sehat ? <CheckCircle2 size={14} /> : <TriangleAlert size={14} />
                 }
               >
-                {sehat ? "API terhubung" : "API bermasalah"}
+                {sehat ? "Layanan data aktif" : "Layanan data bermasalah"}
               </Chip>
               <Chip tone="netral" icon={<Database size={14} />}>
                 Basis data: {health.basis_data}
@@ -99,17 +99,9 @@ export default async function InfoPage() {
               <RefreshCw size={15} className="mt-0.5 shrink-0" />
               <p>Dicek pada {formatWaktu(health.waktu)} WIB.</p>
             </div>
-            <div className="mt-4 flex flex-wrap gap-3 border-t border-line pt-4 text-sm">
+            <div className="mt-4 border-t border-line pt-4 text-sm">
               <a
-                href="https://sabaraha-nine.vercel.app/api/v1/health"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 font-medium text-primary-700 underline-offset-2 hover:underline"
-              >
-                Buka health API <ExternalLink size={14} />
-              </a>
-              <a
-                href="https://hargapangan.id/"
+                href="https://www.bi.go.id/hargapangan"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 font-medium text-primary-700 underline-offset-2 hover:underline"
@@ -145,7 +137,7 @@ export default async function InfoPage() {
         <Card className="xl:col-span-7">
           <CardHeader
             title="Keterbatasan Data"
-            description="Daftar ini berasal dari field keterbatasan pada API."
+            description="Daftar ini berasal dari catatan keterbatasan layanan data."
           />
           <ol className="space-y-3">
             {info.keterbatasan.map((item, index) => (
@@ -184,7 +176,7 @@ export default async function InfoPage() {
             <p className="flex gap-2 text-sm leading-6 text-ink-muted">
               <BookOpen size={16} className="mt-0.5 shrink-0 text-primary-600" />
               Prediksi memakai median persen perubahan harga pada kejadian historis periode
-              yang sama. Baseline adalah rata-rata 30 hari kalender sebelum periode, dengan
+              yang sama. Pembandingnya adalah harga rata-rata 30 hari sebelum periode, dengan
               minimal 15 titik data.
             </p>
             <p className="mt-3 flex gap-2 text-sm leading-6 text-ink-muted">
@@ -224,7 +216,7 @@ export default async function InfoPage() {
 
       <p className="mt-6 text-xs leading-5 text-ink-muted">
         Sumber harga: {info.sumber}. Data terakhir: {formatTanggal(info.tanggal_data_terakhir)}.
-        Halaman ini tidak memuat kunci API atau kredensial basis data. Ingin kembali ke
+        Halaman ini tidak memuat kunci akses atau kredensial basis data. Ingin kembali ke
         ringkasan? <Link href="/" className="font-medium text-primary-700 underline-offset-2 hover:underline">Buka Ringkasan</Link>.
       </p>
     </>

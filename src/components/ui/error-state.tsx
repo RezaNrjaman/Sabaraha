@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 export function ErrorState({
   title = "Data belum bisa dimuat",
-  message = "Coba lagi beberapa saat. Data API mungkin sedang tidak dapat dihubungi.",
+  message = "Coba lagi beberapa saat. Data mungkin sedang tidak dapat dihubungi.",
 }: {
   title?: string;
   message?: string;

@@ -129,7 +129,7 @@ export default async function PeriodePage({
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-ink">Kenaikan Harga per Periode</h2>
             <p className="mt-1 text-sm text-ink-muted">
-              Baseline: rata-rata 30 hari kalender sebelum periode, minimal 15 titik.
+              Pembanding: harga rata-rata 30 hari sebelum periode, minimal 15 titik.
             </p>
           </div>
           {statistikKomoditas.length === 0 ? (
@@ -167,8 +167,9 @@ export default async function PeriodePage({
             </div>
           )}
           <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-muted">
-            Hanya periode dengan baseline cukup yang dihitung. Jumlah kejadian rendah membuat
-            angka ini rentan variasi; gunakan sebagai pola umum, bukan kepastian.
+            Hanya periode yang memiliki harga rata-rata 30 hari sebelumnya (minimal 15 titik)
+            yang dihitung. Jumlah kejadian rendah membuat angka ini rentan variasi; gunakan
+            sebagai pola umum, bukan kepastian.
           </p>
         </Card>
 

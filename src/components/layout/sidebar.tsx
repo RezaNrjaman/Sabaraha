@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronsLeft, Info, Wheat } from "lucide-react";
+import { Info, Wheat } from "lucide-react";
 
 import { navItems, navAktif } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -63,10 +63,6 @@ export function Sidebar() {
           Data harga: Bank Indonesia – PIHPS Nasional.
         </p>
       </div>
-
-      <span className="mt-4 hidden items-center gap-1 px-3 text-xs text-ink-muted lg:flex">
-        <ChevronsLeft size={14} /> Sidebar diperkecil otomatis di tablet
-      </span>
     </aside>
   );
 }
