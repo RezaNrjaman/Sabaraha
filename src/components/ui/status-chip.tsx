@@ -10,7 +10,6 @@ export type ChipTone =
   | "surplus"
   | "seimbang"
   | "defisit"
-  | "perhatian"
   | "netral"
   | "primary";
 
@@ -21,7 +20,6 @@ const toneClasses: Record<ChipTone, string> = {
   surplus: "bg-turun-bg text-turun",
   seimbang: "bg-seimbang-bg text-seimbang",
   defisit: "bg-defisit-bg text-defisit",
-  perhatian: "bg-perhatian-bg text-perhatian",
   netral: "bg-bg text-ink-muted",
   primary: "bg-primary-100 text-primary-700",
 };
@@ -90,18 +88,10 @@ export function StatusChip({
   );
 }
 
-export function SimulationChip({ className }: { className?: string }) {
-  return (
-    <Chip tone="perhatian" className={className} icon={<Info size={14} />}>
-      Simulasi
-    </Chip>
-  );
-}
-
 export function ProjectionChip({ className }: { className?: string }) {
   return (
     <Chip tone="primary" className={className} icon={<Info size={14} />}>
-      Proyeksi simulasi
+      Proyeksi
     </Chip>
   );
 }

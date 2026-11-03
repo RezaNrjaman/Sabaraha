@@ -10,11 +10,9 @@ import {
   Info,
   Layers,
   RefreshCw,
-  ShieldAlert,
   TriangleAlert,
 } from "lucide-react";
 
-import { SimulationBanner } from "@/components/dashboard/simulation-banner";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Chip } from "@/components/ui/status-chip";
 import { PageHeader } from "@/components/ui/page-header";
@@ -65,11 +63,11 @@ export default async function InfoPage() {
               label="Tanggal data terakhir"
               value={formatTanggal(info.tanggal_data_terakhir)}
             />
-            <BarisInfo label="Waktu ETL terakhir" value={formatWaktu(envelope.meta.diperbarui_pada)} />
+            <BarisInfo label="Data diperbarui terakhir" value={formatWaktu(envelope.meta.diperbarui_pada)} />
             <BarisInfo label="Satuan harga" value={info.satuan_harga} />
             <BarisInfo
               label="Label ketersediaan"
-              value={<Chip tone="perhatian">{info.label_ketersediaan}</Chip>}
+              value={<Chip tone="netral">{info.label_ketersediaan}</Chip>}
             />
           </dl>
           <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-muted">
@@ -159,8 +157,8 @@ export default async function InfoPage() {
               </li>
             ))}
           </ol>
-          <div className="mt-5 flex items-start gap-2 rounded-ctl border border-perhatian/20 bg-perhatian-bg px-3 py-2 text-sm text-perhatian">
-            <ShieldAlert size={16} className="mt-0.5 shrink-0" />
+          <div className="mt-5 flex items-start gap-2 rounded-ctl border border-line bg-bg px-3 py-2 text-sm text-ink-muted">
+            <Info size={16} className="mt-0.5 shrink-0" />
             <p>
               Dashboard ini hanya-baca dan tidak memberi rekomendasi jual-beli. Gunakan
               sebagai alat eksplorasi, bukan dasar keputusan tunggal.
@@ -171,11 +169,11 @@ export default async function InfoPage() {
         <div className="space-y-6 xl:col-span-5">
           <Card>
             <CardHeader title="Tentang Ketersediaan" />
-            <SimulationBanner>
-              Angka pasokan, kebutuhan, stok, dan status neraca adalah simulasi untuk
-              demonstrasi. Jangan mengutipnya sebagai data resmi Kota Bandung.
-            </SimulationBanner>
-            <p className="mt-4 text-sm leading-6 text-ink-muted">
+            <p className="text-sm leading-6 text-ink-muted">
+              Data ketersediaan dibuat untuk keperluan simulasi tugas perkuliahan dan bukan
+              data resmi pasokan Kota Bandung.
+            </p>
+            <p className="mt-4 border-t border-line pt-3 text-sm leading-6 text-ink-muted">
               Ambang status: Surplus bila rasio neraca ≥ +5%, Defisit bila ≤ −5%, dan
               Seimbang di antaranya. Data disajikan per bulan dan per komoditas.
             </p>
@@ -214,7 +212,7 @@ export default async function InfoPage() {
           },
           {
             istilah: "Surplus",
-            arti: "Simulasi neraca dengan rasio pasokan-kebutuhan ≥ +5%.",
+            arti: "Neraca dengan rasio pasokan-kebutuhan ≥ +5%.",
           },
         ].map((item) => (
           <Card key={item.istilah} className="p-4 sm:p-5">

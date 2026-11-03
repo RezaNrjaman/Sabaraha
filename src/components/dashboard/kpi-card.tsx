@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Card } from "@/components/ui/card";
-import { Chip, SimulationChip } from "@/components/ui/status-chip";
+import { Chip } from "@/components/ui/status-chip";
 import { cn } from "@/lib/utils";
 
 export function KpiCard({
@@ -15,24 +15,22 @@ export function KpiCard({
   tone = "primary",
   footer,
   tooltip,
-  simulation = false,
 }: {
   label: string;
   value: ReactNode;
   unit?: string;
   hint?: string;
   icon: LucideIcon;
-  tone?: "primary" | "naik" | "turun" | "seimbang" | "perhatian";
+  tone?: "primary" | "naik" | "turun" | "seimbang" | "defisit";
   footer?: ReactNode;
   tooltip?: string;
-  simulation?: boolean;
 }) {
   const iconTone = {
     primary: "bg-primary-100 text-primary-700",
     naik: "bg-naik-bg text-naik",
     turun: "bg-turun-bg text-turun",
     seimbang: "bg-seimbang-bg text-seimbang",
-    perhatian: "bg-perhatian-bg text-perhatian",
+    defisit: "bg-defisit-bg text-defisit",
   }[tone];
 
   return (
@@ -41,7 +39,6 @@ export function KpiCard({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-sm font-medium text-ink-muted">{label}</p>
-            {simulation ? <SimulationChip /> : null}
             {tooltip ? (
               <span className="group relative inline-flex">
                 <button

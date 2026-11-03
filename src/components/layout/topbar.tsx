@@ -57,14 +57,14 @@ export function Topbar({
 
         <div className="order-2 ml-auto flex items-center gap-2 sm:order-3">
           <Chip
-            tone={lama ? "perhatian" : "netral"}
+            tone={lama ? "naik" : "netral"}
             icon={lama ? <TriangleAlert size={14} /> : <CalendarCheck2 size={14} />}
             className="hidden sm:inline-flex"
           >
             Data terakhir: {formatTanggal(tanggal)}
           </Chip>
           <Chip
-            tone={lama ? "perhatian" : "netral"}
+            tone={lama ? "naik" : "netral"}
             icon={lama ? <TriangleAlert size={14} /> : <CalendarCheck2 size={14} />}
             className="sm:hidden"
           >

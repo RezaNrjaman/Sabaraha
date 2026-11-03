@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, TriangleAlert } from "lucide-react";
+import { Activity, Info } from "lucide-react";
 
 import { CommodityIcon } from "@/components/commodity-icon";
 import { ChartFrame } from "@/components/charts/chart-frame";
@@ -184,8 +184,8 @@ export default async function VolatilitasPage({
                 </p>
               </div>
             </div>
-            <div className="mt-4 flex items-start gap-2 rounded-ctl bg-perhatian-bg px-3 py-2 text-sm text-perhatian">
-              <TriangleAlert size={16} className="mt-0.5 shrink-0" />
+            <div className="mt-4 flex items-start gap-2 rounded-ctl border border-line bg-bg px-3 py-2 text-sm text-ink-muted">
+              <Info size={16} className="mt-0.5 shrink-0" />
               <p>
                 {lonjakan.length} lonjakan terdeteksi. Metode: harga di luar rata-rata ± 2
                 simpangan baku pada periode ini.

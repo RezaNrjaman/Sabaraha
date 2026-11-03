@@ -15,7 +15,7 @@ import { TrendTable } from "@/components/charts/trend-table";
 import { KpiCard, Metric } from "@/components/dashboard/kpi-card";
 import { PriceTable } from "@/components/dashboard/price-table";
 import { RankingList } from "@/components/dashboard/ranking-list";
-import { Chip, SimulationChip } from "@/components/ui/status-chip";
+import { Chip } from "@/components/ui/status-chip";
 import { Card, CardHeader } from "@/components/ui/card";
 import { ChangeChip } from "@/components/ui/status-chip";
 import { PageHeader } from "@/components/ui/page-header";
@@ -79,7 +79,7 @@ export default async function RingkasanPage() {
       <PageHeader
         eyebrow="Kota Bandung"
         title="Ringkasan Harga Pangan"
-        description="Gambaran cepat harga 10 komoditas utama, ketersediaan simulasi, dan perkiraan periode berikutnya."
+        description="Gambaran cepat harga 10 komoditas utama, ketersediaan pangan, dan perkiraan periode berikutnya."
         actions={
           <Link href="/tren" className={buttonClasses({ variant: "secondary", size: "sm" })}>
             Lihat tren lengkap <ArrowUpRight size={16} />
@@ -112,11 +112,9 @@ export default async function RingkasanPage() {
           label="Komoditas Defisit"
           value={`${data.komoditas_defisit_bulan_terbaru.jumlah} dari ${data.komoditas_defisit_bulan_terbaru.total_komoditas}`}
           icon={PackageX}
-          tone="perhatian"
+          tone="defisit"
           hint={`Bulan ${formatBulan(data.komoditas_defisit_bulan_terbaru.bulan)}`}
-          simulation
-          footer={<SimulationChip />}
-          tooltip="Status neraca simulasi: defisit bila rasio neraca ≤ -5%."
+          tooltip="Status neraca: defisit bila rasio neraca ≤ −5%."
         />
         <KpiCard
           label={`Prediksi ${prediksi.periode_nama}`}
@@ -160,8 +158,7 @@ export default async function RingkasanPage() {
         <Card className="xl:col-span-4">
           <CardHeader
             title="Status Ketersediaan"
-            description={`Bulan ${formatBulan(status.bulan)} · data simulasi`}
-            action={<SimulationChip />}
+            description={`Bulan ${formatBulan(status.bulan)}`}
           />
           <DonutChart data={donut} totalLabel="komoditas" />
           <ul className="mt-2 space-y-2" aria-label="Legenda status ketersediaan">
@@ -175,9 +172,6 @@ export default async function RingkasanPage() {
               </li>
             ))}
           </ul>
-          <p className="mt-4 border-t border-line pt-3 text-xs text-ink-muted">
-            Data ketersediaan adalah simulasi, bukan data resmi.
-          </p>
         </Card>
       </div>
 

@@ -60,7 +60,7 @@ export function Sidebar() {
           <span className="hidden lg:block">Sumber dan Metode</span>
         </Link>
         <p className="mt-2 hidden px-3 text-xs leading-5 text-ink-muted lg:block">
-          Data harga: Bank Indonesia – PIHPS Nasional. Ketersediaan: simulasi.
+          Data harga: Bank Indonesia – PIHPS Nasional.
         </p>
       </div>
 

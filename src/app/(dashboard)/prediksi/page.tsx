@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarClock, Info, Sparkles, TriangleAlert } from "lucide-react";
+import { CalendarClock, Info, Sparkles } from "lucide-react";
 
 import { CommodityIcon } from "@/components/commodity-icon";
 import { RangeBar } from "@/components/charts/range-bar";
@@ -145,8 +145,8 @@ export default async function PrediksiPage({
                 </div>
               </div>
 
-              <div className="mt-5 flex items-start gap-2 rounded-ctl bg-perhatian-bg px-3 py-2 text-sm text-perhatian">
-                <TriangleAlert size={16} className="mt-0.5 shrink-0" />
+              <div className="mt-5 flex items-start gap-2 rounded-ctl border border-line bg-bg px-3 py-2 text-sm text-ink-muted">
+                <Info size={16} className="mt-0.5 shrink-0" />
                 <p>{prediksi.catatan}. Gunakan rentang, bukan hanya nilai tengah.</p>
               </div>
             </Card>

@@ -1,14 +1,13 @@
-import { Package, ShieldCheck } from "lucide-react";
+import { Package } from "lucide-react";
 
 import { ChartFrame } from "@/components/charts/chart-frame";
 import { DonutChart } from "@/components/charts/donut-chart";
 import { GroupedBarChart } from "@/components/charts/grouped-bar-chart";
-import { SimulationBanner } from "@/components/dashboard/simulation-banner";
 import { FilterChips, ResetFilter } from "@/components/filters/filter-chips";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
-import { ProjectionChip, SimulationChip, StatusChip } from "@/components/ui/status-chip";
+import { ProjectionChip, StatusChip } from "@/components/ui/status-chip";
 import { fetchApiData } from "@/lib/api";
 import { ambilDaftar } from "@/lib/filters";
 import { formatBulan, formatHari, formatPersen, formatTon } from "@/lib/format";
@@ -96,15 +95,11 @@ export default async function KetersediaanPage({
   return (
     <>
       <PageHeader
-        eyebrow="Pasokan pangan (simulasi)"
+        eyebrow="Pasokan pangan"
         title="Ketersediaan Pangan"
-        description="Status neraca, pasokan, kebutuhan, dan ketahanan stok. Semua angka di halaman ini adalah simulasi untuk demonstrasi."
+        description="Status neraca, pasokan, kebutuhan, dan ketahanan stok per bulan."
         actions={<ResetFilter href="/ketersediaan" />}
       />
-
-      <div className="mb-6">
-        <SimulationBanner />
-      </div>
 
       <Card className="mb-6">
         <div className="space-y-5">
@@ -134,7 +129,7 @@ export default async function KetersediaanPage({
           <ProjectionChip />
           <p className="text-sm leading-6 text-ink">
             Menampilkan <span className="font-semibold">{labelRentang}</span>. Bagian{" "}
-            <span className="font-semibold">proyeksi</span> (Nov 2026–Des 2032) adalah simulasi
+            <span className="font-semibold">proyeksi</span> (Nov 2026–Des 2032) merupakan proyeksi
             tren, bukan ramalan resmi. Status neraca terkini di atas tetap memakai bulan riwayat
             terakhir (Okt 2026), tidak termasuk proyeksi.
           </p>
@@ -146,7 +141,6 @@ export default async function KetersediaanPage({
           <CardHeader
             title="Status Ketersediaan"
             description={`Bulan ${formatBulan(status.bulan)} · ${status.total} komoditas`}
-            action={<SimulationChip />}
           />
           <DonutChart data={donut} totalLabel="komoditas" />
           <ul className="mt-2 space-y-2" aria-label="Legenda status ketersediaan">
@@ -161,8 +155,7 @@ export default async function KetersediaanPage({
             ))}
           </ul>
           <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-muted">
-            Aturan: Surplus ≥ +5%, Defisit ≤ −5%, selain itu Seimbang. Data simulasi, bukan
-            data resmi pasokan Kota Bandung.
+            Aturan: Surplus ≥ +5%, Defisit ≤ −5%, selain itu Seimbang.
           </p>
         </Card>
 
@@ -170,7 +163,6 @@ export default async function KetersediaanPage({
           <CardHeader
             title="Status per Komoditas"
             description={`Bulan riwayat terbaru ${formatBulan(status.bulan)}`}
-            action={<SimulationChip />}
           />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {status.komoditas.map((item) => (
@@ -197,7 +189,7 @@ export default async function KetersediaanPage({
           <ChartFrame
             className="mt-6"
             title={`Pasokan vs Kebutuhan ${namaAman}`}
-            description={`Per bulan, dalam ton. Rentang: ${labelRentang}. Data simulasi.${menampilkanProyeksi ? " Bagian proyeksi disimpan sebagai simulasi tren." : ""}`}
+            description={`Per bulan, dalam ton. Rentang: ${labelRentang}.`}
             summary={`Grafik batang pasokan dan kebutuhan ${namaAman} per bulan dari ${formatBulan(rows[0]?.bulan)} sampai ${formatBulan(rows.at(-1)?.bulan)}.`}
             table={
               <table className="w-full min-w-[520px] border-collapse text-sm">
@@ -245,7 +237,7 @@ export default async function KetersediaanPage({
             <ChartFrame
               className="xl:col-span-8"
               title={`Stok Akhir ${namaAman}`}
-              description={`Sisa stok pada akhir bulan, dalam ton. Rentang: ${labelRentang}. Data simulasi.${menampilkanProyeksi ? " Bagian proyeksi disimpan sebagai simulasi tren." : ""}`}
+              description={`Sisa stok pada akhir bulan, dalam ton. Rentang: ${labelRentang}.`}
               summary={`Grafik stok akhir ${namaAman} per bulan dari ${formatBulan(rows[0]?.bulan)} sampai ${formatBulan(rows.at(-1)?.bulan)}.`}
               table={
                 <table className="w-full min-w-[420px] border-collapse text-sm">
@@ -293,11 +285,7 @@ export default async function KetersediaanPage({
                 }
                 description={statusDipilih ? formatBulan(statusDipilih.bulan) : "-"}
                 action={
-                  statusDipilih?.jenis_data === "proyeksi" ? (
-                    <ProjectionChip />
-                  ) : (
-                    <SimulationChip />
-                  )
+                  statusDipilih?.jenis_data === "proyeksi" ? <ProjectionChip /> : null
                 }
               />
               <dl className="space-y-4 text-sm">
@@ -326,13 +314,6 @@ export default async function KetersediaanPage({
                   </dd>
                 </div>
               </dl>
-              <div className="mt-5 flex items-start gap-2 rounded-ctl bg-perhatian-bg px-3 py-2 text-sm text-perhatian">
-                <ShieldCheck size={16} className="mt-0.5 shrink-0" />
-                <p>
-                  Data simulasi tidak boleh dipakai sebagai bukti hubungan sebab-akibat harga
-                  dan pasokan.
-                </p>
-              </div>
             </Card>
           </div>
         </>
@@ -340,11 +321,7 @@ export default async function KetersediaanPage({
 
       <div className="mt-6 flex items-start gap-2 text-xs leading-5 text-ink-muted">
         <Package size={15} className="mt-0.5 shrink-0" />
-        <p>
-          Sumber harga: {info.sumber}. Data ketersediaan adalah simulasi yang dibuat untuk
-          demonstrasi, bukan data resmi. Data proyeksi (Nov 2026–Des 2032) adalah simulasi tren,
-          bukan ramalan.
-        </p>
+        <p>Sumber harga: {info.sumber}.</p>
       </div>
     </>
   );
