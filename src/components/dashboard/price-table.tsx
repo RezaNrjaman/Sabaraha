@@ -6,14 +6,23 @@ import { useMemo, useState } from "react";
 import { CommodityIcon } from "@/components/commodity-icon";
 import { Sparkline } from "@/components/charts/sparkline";
 import { ChangeChip, StatusChip } from "@/components/ui/status-chip";
-import { formatRupiah, formatTanggalPendek } from "@/lib/format";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { formatRupiah, formatTanggalPendek, statusHarga } from "@/lib/format";
 import type { HargaStatus, HargaTerkini } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-type SortKey = "nama" | "harga" | "tujuh" | "tiga_puluh";
+type SortKey = "nama" | "harga" | "satu" | "tujuh" | "tiga_puluh";
 type SortDir = "asc" | "desc";
 
 const filterStatus: Array<HargaStatus | "Semua"> = ["Semua", "Naik", "Turun", "Stabil"];
+
+/**
+ * Status 30 hari memakai perubahan 30 hari yang dikirim API, dengan ambang
+ * yang sama seperti aturan status API: naik bila ≥ +1%, turun bila ≤ −1%.
+ */
+function status30(item: HargaTerkini): HargaStatus {
+  return statusHarga(item.perubahan.tiga_puluh_hari);
+}
 
 function SortLabel({
   kolom,
@@ -51,12 +60,13 @@ export function PriceTable({ data }: { data: HargaTerkini[] }) {
   const hasil = useMemo(() => {
     const kata = cari.trim().toLowerCase();
     return data
-      .filter((item) => (status === "Semua" ? true : item.status === status))
+      .filter((item) => (status === "Semua" ? true : status30(item) === status))
       .filter((item) => (kata ? item.nama.toLowerCase().includes(kata) : true))
       .sort((a, b) => {
         const nilai = (item: HargaTerkini) => {
           if (sortKey === "nama") return item.nama;
           if (sortKey === "harga") return item.harga_terkini ?? -Infinity;
+          if (sortKey === "satu") return item.perubahan.satu_hari ?? -Infinity;
           if (sortKey === "tujuh") return item.perubahan.tujuh_hari ?? -Infinity;
           return item.perubahan.tiga_puluh_hari ?? -Infinity;
         };
@@ -126,23 +136,32 @@ export function PriceTable({ data }: { data: HargaTerkini[] }) {
       ) : null}
 
       <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[760px] border-collapse text-base">
+        <table className="w-full min-w-[880px] border-collapse text-base">
           <thead>
             <tr className="border-b border-line text-left">
-              <th className="px-2 py-2" aria-sort={sortKey === "nama" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+              <th scope="col" className="px-2 py-2" aria-sort={sortKey === "nama" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <SortLabel kolom="nama" label="Komoditas" sortKey={sortKey} sortDir={sortDir} onSort={ubahSort} />
               </th>
-              <th className="px-2 py-2" aria-sort={sortKey === "harga" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+              <th scope="col" className="px-2 py-2" aria-sort={sortKey === "harga" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <SortLabel kolom="harga" label="Harga terkini" sortKey={sortKey} sortDir={sortDir} onSort={ubahSort} />
               </th>
-              <th className="px-2 py-2" aria-sort={sortKey === "tujuh" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+              <th scope="col" className="px-2 py-2" aria-sort={sortKey === "satu" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                <SortLabel kolom="satu" label="1 hari" sortKey={sortKey} sortDir={sortDir} onSort={ubahSort} />
+              </th>
+              <th scope="col" className="px-2 py-2" aria-sort={sortKey === "tujuh" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <SortLabel kolom="tujuh" label="7 hari" sortKey={sortKey} sortDir={sortDir} onSort={ubahSort} />
               </th>
-              <th className="px-2 py-2" aria-sort={sortKey === "tiga_puluh" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+              <th scope="col" className="px-2 py-2" aria-sort={sortKey === "tiga_puluh" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
                 <SortLabel kolom="tiga_puluh" label="30 hari" sortKey={sortKey} sortDir={sortDir} onSort={ubahSort} />
               </th>
-              <th className="px-2 py-2 text-sm font-medium text-ink-muted">Status</th>
-              <th className="px-2 py-2 text-sm font-medium text-ink-muted">30 hari terakhir</th>
+              <th scope="col" className="px-2 py-2">
+                <InfoTooltip
+                  label="Status 30 hari"
+                  text="Naik bila perubahan lebih dari +1%, turun bila kurang dari −1%."
+                  align="right"
+                />
+              </th>
+              <th scope="col" className="px-2 py-2 text-sm font-medium text-ink-muted">30 hari terakhir</th>
             </tr>
           </thead>
           <tbody>
@@ -161,13 +180,16 @@ export function PriceTable({ data }: { data: HargaTerkini[] }) {
                   {formatRupiah(item.harga_terkini, item.satuan)}
                 </td>
                 <td className="px-2 py-3">
+                  <ChangeChip value={item.perubahan.satu_hari} />
+                </td>
+                <td className="px-2 py-3">
                   <ChangeChip value={item.perubahan.tujuh_hari} />
                 </td>
                 <td className="px-2 py-3">
                   <ChangeChip value={item.perubahan.tiga_puluh_hari} />
                 </td>
                 <td className="px-2 py-3">
-                  <StatusChip status={item.status} />
+                  <StatusChip status={status30(item)} />
                 </td>
                 <td className="px-2 py-3">
                   <Sparkline data={item.grafik_mini} label={`Grafik mini ${item.nama}`} />
@@ -189,12 +211,13 @@ export function PriceTable({ data }: { data: HargaTerkini[] }) {
                   <p className="text-sm text-ink-muted">Data {formatTanggalPendek(item.tanggal_terkini)}</p>
                 </div>
               </div>
-              <StatusChip status={item.status} />
+              <StatusChip status={status30(item)} />
             </div>
             <div className="mt-4 flex items-end justify-between gap-3">
               <div>
                 <p className="text-xl font-bold text-ink">{formatRupiah(item.harga_terkini, item.satuan)}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
+                  <ChangeChip value={item.perubahan.satu_hari} label="1 hari" />
                   <ChangeChip value={item.perubahan.tujuh_hari} label="7 hari" />
                   <ChangeChip value={item.perubahan.tiga_puluh_hari} label="30 hari" />
                 </div>
