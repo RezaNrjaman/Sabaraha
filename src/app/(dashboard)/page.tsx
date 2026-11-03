@@ -33,6 +33,7 @@ import type {
   HargaTerkini,
   Peringkat,
   RingkasanData,
+  StatistikPeriode,
   StatusKetersediaan,
 } from "@/lib/types";
 
@@ -51,11 +52,13 @@ async function ambilData() {
   const status = await fetchApiData<StatusKetersediaan>(
     "/ketersediaan/status-terkini",
   );
-  return { ringkasan, hargaBulanan, terkini, naik, turun, status };
+  const statistik = await fetchApiData<StatistikPeriode[]>("/periode/statistik");
+  return { ringkasan, hargaBulanan, terkini, naik, turun, status, statistik };
 }
 
 export default async function RingkasanPage() {
-  const { ringkasan, hargaBulanan, terkini, naik, turun, status } = await ambilData();
+  const { ringkasan, hargaBulanan, terkini, naik, turun, status, statistik } =
+    await ambilData();
   const data = ringkasan.data;
   const indeks = buildAverageIndex(hargaBulanan);
   const ringkas = ringkasAngka(indeks.map((point) => point.indeks));
@@ -68,6 +71,10 @@ export default async function RingkasanPage() {
       ? ((indeks[indeks.length - 1].indeks - indeks[0].indeks) / indeks[0].indeks) * 100
       : 0;
   const prediksi = data.prediksi_periode_berikutnya;
+  // Komoditas dengan median kenaikan tertinggi pada periode berikutnya.
+  const teratas = statistik
+    .filter((item) => item.periode_nama === prediksi.periode_nama)
+    .sort((a, b) => b.median_persen - a.median_persen)[0];
   const donut = [
     { name: "Surplus", value: status.jumlah.surplus, color: "#1E7A3E" },
     { name: "Seimbang", value: status.jumlah.seimbang, color: "#1F6FA8" },
@@ -117,17 +124,18 @@ export default async function RingkasanPage() {
           tooltip="Status neraca: defisit bila rasio neraca ≤ −5%."
         />
         <KpiCard
-          label={`Prediksi ${prediksi.periode_nama}`}
-          value={formatPersenBertanda(prediksi.median_persen)}
+          label={teratas ? `Prediksi ${teratas.nama}` : `Prediksi ${prediksi.periode_nama}`}
+          value={formatPersenBertanda(teratas?.median_persen ?? prediksi.median_persen)}
           icon={Sparkles}
           tone="seimbang"
-          hint={`Median ${prediksi.jumlah_komoditas} komoditas`}
+          hint={`Perkiraan saat ${prediksi.periode_nama}, mulai ${formatTanggal(prediksi.tanggal_mulai)}`}
           footer={
             <span className="text-sm text-ink-muted">
-              Rentang {formatPersen(prediksi.min_persen)} – {formatPersen(prediksi.maks_persen)}
+              Rentang {formatPersen(teratas?.min_persen ?? prediksi.min_persen)} –{" "}
+              {formatPersen(teratas?.maks_persen ?? prediksi.maks_persen)}
             </span>
           }
-          tooltip="Median persen perubahan tiap kejadian historis. Bukan jaminan."
+          tooltip="Median kenaikan tertinggi di antara 10 komoditas pada periode berikutnya. Perkiraan dari pola historis, bukan jaminan."
         />
       </div>
 

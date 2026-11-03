@@ -8,6 +8,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Chip } from "@/components/ui/status-chip";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { hitungBacktest, ringkasBacktest } from "@/lib/backtest";
 import { cobaAmbil, fetchApiData } from "@/lib/api";
 import { ambilDaftar } from "@/lib/filters";
 import {
@@ -17,13 +18,38 @@ import {
   formatTanggal,
 } from "@/lib/format";
 import { buildQuery, pilihanParam } from "@/lib/query";
-import type { Komoditas, PrediksiData, StatistikPeriode } from "@/lib/types";
+import type {
+  HargaPoint,
+  InfoData,
+  Komoditas,
+  Periode,
+  PrediksiData,
+  StatistikPeriode,
+} from "@/lib/types";
 
 export const metadata = {
   title: "Prediksi",
 };
 
 const URUTAN_PERIODE = ["Ramadan", "Idul Fitri", "Idul Adha", "Natal-Tahun Baru", "Musim Hujan"];
+
+/**
+ * Uji mundur per kejadian. Harga harian dan tanggal kejadian diambil dari API,
+ * lalu dihitung di halaman ini karena API tidak menyediakan endpoint backtest.
+ */
+async function ambilUjiMundur(namaKomoditas: string, namaPeriode: string) {
+  const info = await fetchApiData<InfoData>("/info");
+  const daftarPeriode = await fetchApiData<Periode[]>("/periode");
+  const harga = await fetchApiData<HargaPoint[]>(
+    `/harga${buildQuery({
+      komoditas: namaKomoditas,
+      dari: info.periode_data.dari,
+      sampai: info.tanggal_data_terakhir,
+      agregasi: "harian",
+    })}`,
+  );
+  return hitungBacktest(harga, daftarPeriode, namaKomoditas, namaPeriode);
+}
 
 export default async function PrediksiPage({
   searchParams,
@@ -44,9 +70,24 @@ export default async function PrediksiPage({
     `/prediksi${buildQuery({ komoditas: namaAman, periode: periodeAman || undefined })}`,
   );
   const periodeTabel = prediksi?.periode_nama ?? periodeAman;
-  const tabel = statistik
-    .filter((item) => item.periode_nama === periodeTabel)
-    .sort((a, b) => b.median_persen - a.median_persen);
+
+  // Seluruh 10 komoditas selalu tampil. Baris tanpa statistik periode
+  // diberi keterangan "Data belum cukup", bukan baris kosong.
+  const tabel = namaUtama
+    .map((nama) => ({
+      nama,
+      stat:
+        statistik.find((item) => item.nama === nama && item.periode_nama === periodeTabel) ??
+        null,
+    }))
+    .sort(
+      (a, b) =>
+        (b.stat?.median_persen ?? Number.NEGATIVE_INFINITY) -
+        (a.stat?.median_persen ?? Number.NEGATIVE_INFINITY),
+    );
+
+  const ujiMundur = prediksi ? await ambilUjiMundur(namaAman, periodeTabel) : [];
+  const ringkasUji = ringkasBacktest(ujiMundur);
 
   return (
     <>
@@ -174,7 +215,10 @@ export default async function PrediksiPage({
                   <li>• Prediksi memakai pola historis, bukan model machine learning kompleks.</li>
                   <li>• Tanggal periode Hijriah bergeser setiap tahun.</li>
                   <li>• Kejadian luar biasa dapat membuat rentang sangat lebar.</li>
-                  <li>• Backtest per kejadian belum tersedia di API versi ini; angka tidak dibuat.</li>
+                  <li>
+                    • Pada uji mundur, prediksi satu kejadian dihitung dari kejadian lain agar
+                    tidak ikut melatih dirinya sendiri.
+                  </li>
                 </ul>
               </Card>
             </div>
@@ -182,53 +226,127 @@ export default async function PrediksiPage({
 
           <Card className="mt-6">
             <CardHeader
-              title={`Prediksi Semua Komoditas · ${periodeTabel || "Periode terpilih"}`}
-              description="Median dan rentang kenaikan per komoditas utama pada periode yang sama."
+              title="Seberapa akurat?"
+              description={`Perbandingan perkiraan dan kejadian nyata ${namaAman} pada periode ${periodeTabel}.`}
             />
-            {tabel.length === 0 ? (
+            {!ringkasUji ? (
               <EmptyState
-                title="Belum ada statistik untuk periode ini"
-                description="Coba pilih periode lain."
+                title="Kejadian belum cukup"
+                description="Uji mundur membutuhkan minimal dua kejadian periode dengan data harga yang lengkap."
                 actionHref="/prediksi"
               />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] border-collapse text-sm">
-                  <thead>
-                    <tr className="border-b border-line text-left text-ink-muted">
-                      <th className="px-2 py-3 font-medium">Komoditas</th>
-                      <th className="px-2 py-3 font-medium">Median</th>
-                      <th className="px-2 py-3 font-medium">Rata-rata</th>
-                      <th className="px-2 py-3 font-medium">Min</th>
-                      <th className="px-2 py-3 font-medium">Maks</th>
-                      <th className="px-2 py-3 font-medium">Kejadian</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tabel.map((item) => (
-                      <tr key={item.komoditas_id} className="border-b border-line/80 hover:bg-primary-50/60">
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[620px] border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b border-line text-left text-ink-muted">
+                        <th scope="col" className="px-2 py-3 font-medium">Tahun</th>
+                        <th scope="col" className="px-2 py-3 font-medium">Prediksi</th>
+                        <th scope="col" className="px-2 py-3 font-medium">
+                          Kejadian sebenarnya
+                        </th>
+                        <th scope="col" className="px-2 py-3 font-medium">Selisih</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ujiMundur.map((baris) => (
+                        <tr key={baris.tahun} className="border-b border-line/80">
+                          <td className="px-2 py-3 font-semibold text-ink">{baris.tahun}</td>
+                          <td className="px-2 py-3">
+                            <span className="font-medium text-ink">
+                              {formatPersenBertanda(baris.prediksi)}
+                            </span>
+                            <span className="block text-xs text-ink-muted">
+                              rentang {formatPersen(baris.rentangMin)} –{" "}
+                              {formatPersen(baris.rentangMaks)}
+                            </span>
+                          </td>
+                          <td className="px-2 py-3 font-semibold text-ink">
+                            {formatPersenBertanda(baris.aktual)}
+                          </td>
+                          <td className="px-2 py-3 text-ink">
+                            {formatPersenBertanda(baris.selisih)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="mt-4 border-t border-line pt-3 text-sm leading-6 text-ink">
+                  Rata-rata meleset {formatAngka(ringkasUji.rataMeleset, 1)} poin persen; dari{" "}
+                  {formatAngka(ringkasUji.jumlah, 0)} kejadian,{" "}
+                  {formatAngka(ringkasUji.dalamRentang, 0)} jatuh dalam rentang.
+                </p>
+                <p className="mt-3 text-xs leading-5 text-ink-muted">
+                  Dihitung dari harga harian dan tanggal kejadian: prediksi tiap kejadian memakai
+                  median kejadian lain pada periode yang sama.
+                </p>
+              </>
+            )}
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader
+              title={`Prediksi Semua Komoditas · ${periodeTabel || "Periode terpilih"}`}
+              description="Median dan rentang kenaikan per komoditas utama pada periode yang sama."
+            />
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-line text-left text-ink-muted">
+                    <th scope="col" className="px-2 py-3 font-medium">Komoditas</th>
+                    <th scope="col" className="px-2 py-3 font-medium">Median</th>
+                    <th scope="col" className="px-2 py-3 font-medium">Rata-rata</th>
+                    <th scope="col" className="px-2 py-3 font-medium">Min</th>
+                    <th scope="col" className="px-2 py-3 font-medium">Maks</th>
+                    <th scope="col" className="px-2 py-3 font-medium">Kejadian</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tabel.map(({ nama, stat }) => {
+                    const tersedia =
+                      stat !== null &&
+                      Number.isFinite(stat.median_persen) &&
+                      stat.jumlah_kejadian > 0;
+                    return (
+                      <tr key={nama} className="border-b border-line/80 hover:bg-primary-50/60">
                         <td className="px-2 py-3">
                           <Link
-                            href={`/prediksi?komoditas=${encodeURIComponent(item.nama)}&periode=${encodeURIComponent(periodeTabel)}`}
+                            href={`/prediksi?komoditas=${encodeURIComponent(nama)}&periode=${encodeURIComponent(periodeTabel)}`}
                             className="flex items-center gap-3 font-semibold text-ink hover:text-primary-700"
                           >
-                            <CommodityIcon nama={item.nama} />
-                            {item.nama}
+                            <CommodityIcon nama={nama} />
+                            {nama}
                           </Link>
                         </td>
-                        <td className="px-2 py-3 font-semibold text-ink">
-                          {formatPersen(item.median_persen)}
-                        </td>
-                        <td className="px-2 py-3">{formatPersen(item.rata_rata_persen)}</td>
-                        <td className="px-2 py-3 text-turun">{formatPersen(item.min_persen)}</td>
-                        <td className="px-2 py-3 text-naik">{formatPersen(item.maks_persen)}</td>
-                        <td className="px-2 py-3">{formatAngka(item.jumlah_kejadian, 0)}</td>
+                        {tersedia && stat ? (
+                          <>
+                            <td className="px-2 py-3 font-semibold text-ink">
+                              {formatPersen(stat.median_persen)}
+                            </td>
+                            <td className="px-2 py-3">{formatPersen(stat.rata_rata_persen)}</td>
+                            <td className="px-2 py-3 text-turun">
+                              {formatPersen(stat.min_persen)}
+                            </td>
+                            <td className="px-2 py-3 text-naik">
+                              {formatPersen(stat.maks_persen)}
+                            </td>
+                            <td className="px-2 py-3">
+                              {formatAngka(stat.jumlah_kejadian, 0)}
+                            </td>
+                          </>
+                        ) : (
+                          <td colSpan={5} className="px-2 py-3 text-ink-muted">
+                            Data belum cukup
+                          </td>
+                        )}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
             <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-muted">
               Baseline: rata-rata 30 hari kalender sebelum periode, minimal 15 titik. Prediksi
               bukan jaminan dan tidak memperhitungkan kejadian luar biasa di masa depan.
