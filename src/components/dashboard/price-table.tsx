@@ -43,7 +43,7 @@ function SortLabel({
     <button
       type="button"
       onClick={() => onSort(kolom)}
-      className="inline-flex min-h-10 items-center gap-1 rounded text-left text-sm font-medium text-ink-muted hover:text-primary-700"
+      className="inline-flex min-h-11 items-center gap-1 rounded text-left text-sm font-medium text-ink-muted hover:text-primary-700"
     >
       {label}
       <Icon size={13} className={cn(!aktif && "opacity-30")} />
@@ -117,7 +117,7 @@ export function PriceTable({ data }: { data: HargaTerkini[] }) {
               aria-pressed={status === item}
               onClick={() => setStatus(item)}
               className={cn(
-                "min-h-10 rounded-full border px-3 text-sm font-medium transition-colors",
+                "min-h-11 rounded-full border px-3 text-sm font-medium transition-colors",
                 status === item
                   ? "border-primary-600 bg-primary-50 text-primary-700"
                   : "border-line bg-surface text-ink-muted hover:border-primary-500",

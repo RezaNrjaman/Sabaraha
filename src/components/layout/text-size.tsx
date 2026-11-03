@@ -66,7 +66,7 @@ export function TextSize() {
           aria-pressed={ukuran === item.id}
           onClick={() => simpan(item.id)}
           className={cn(
-            "min-h-9 min-w-9 rounded-[9px] px-1.5 text-sm font-semibold transition-colors",
+            "min-h-11 min-w-11 rounded-[9px] px-1.5 text-sm font-semibold transition-colors",
             ukuran === item.id
               ? "bg-primary-600 text-white"
               : "text-ink-muted hover:bg-primary-50 hover:text-primary-700",

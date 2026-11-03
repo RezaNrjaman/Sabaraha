@@ -39,7 +39,7 @@ export function MobileNav() {
                 href={item.href}
                 aria-current={aktif ? "page" : undefined}
                 className={cn(
-                  "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-ctl px-1 text-[11px] font-medium",
+                  "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-ctl px-0.5 text-xs font-medium",
                   aktif ? "bg-primary-600 text-white" : "text-ink-muted hover:bg-primary-50",
                 )}
               >
@@ -53,7 +53,7 @@ export function MobileNav() {
             aria-expanded={terbuka}
             aria-controls="menu-lainnya"
             onClick={() => setTerbuka((nilai) => !nilai)}
-            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-ctl px-1 text-[11px] font-medium text-ink-muted hover:bg-primary-50"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-ctl px-0.5 text-xs font-medium text-ink-muted hover:bg-primary-50"
           >
             {terbuka ? <X size={19} /> : <Menu size={19} />}
             Lainnya
@@ -81,7 +81,7 @@ export function MobileNav() {
               <button
                 type="button"
                 onClick={() => setTerbuka(false)}
-                className="inline-flex size-10 items-center justify-center rounded-full text-ink-muted hover:bg-primary-50"
+                className="inline-flex size-11 items-center justify-center rounded-full text-ink-muted hover:bg-primary-50"
                 aria-label="Tutup"
               >
                 <X size={18} />

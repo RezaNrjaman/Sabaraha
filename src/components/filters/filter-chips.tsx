@@ -69,7 +69,7 @@ export function FilterChips({
             title={penuh ? `Maksimal ${max} pilihan` : option.label}
             onClick={() => pilih(option.value)}
             className={cn(
-              "min-h-10 rounded-full border px-3 text-sm font-medium transition-colors",
+              "min-h-11 rounded-full border px-3 text-sm font-medium transition-colors",
               aktif
                 ? "border-primary-600 bg-primary-50 text-primary-700"
                 : "border-line bg-surface text-ink-muted hover:border-primary-500 hover:text-ink",
@@ -88,7 +88,7 @@ export function ResetFilter({ href, label = "Atur ulang filter" }: { href: strin
   return (
     <a
       href={href}
-      className="inline-flex min-h-10 items-center text-sm font-medium text-primary-700 underline-offset-2 hover:underline"
+      className="inline-flex min-h-11 items-center text-sm font-medium text-primary-700 underline-offset-2 hover:underline"
     >
       {label}
     </a>

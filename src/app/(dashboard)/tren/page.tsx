@@ -137,7 +137,7 @@ export default async function TrenPage({
               multi
               max={5}
             />
-            <p className="mt-2 text-xs text-ink-muted">
+            <p className="mt-2 text-sm text-ink-muted">
               Pilih 2–5 komoditas untuk membandingkan. Grafik otomatis memakai indeks.
             </p>
           </div>
@@ -223,7 +223,7 @@ export default async function TrenPage({
         />
       </ChartFrame>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-ink-muted">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-ink-muted">
         <p>
           Hari libur dan akhir pekan tidak memiliki data. Garis tidak disambung melewati nilai
           kosong.

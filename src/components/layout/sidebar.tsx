@@ -23,7 +23,7 @@ export function Sidebar() {
         </span>
         <span className="hidden min-w-0 lg:block">
           <span className="block text-xl font-bold leading-6 text-primary-700">Sabaraha</span>
-          <span className="block text-xs text-ink-muted">Harga pangan Bandung</span>
+          <span className="block text-sm text-ink-muted">Harga pangan Bandung</span>
         </span>
       </Link>
 
@@ -59,7 +59,7 @@ export function Sidebar() {
           <Info size={19} className="shrink-0" />
           <span className="hidden lg:block">Sumber dan Metode</span>
         </Link>
-        <p className="mt-2 hidden px-3 text-xs leading-5 text-ink-muted lg:block">
+        <p className="mt-2 hidden px-3 text-sm leading-5 text-ink-muted lg:block">
           Data harga: Bank Indonesia – PIHPS Nasional.
         </p>
       </div>

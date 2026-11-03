@@ -118,7 +118,7 @@ export default async function PrediksiPage({
               selected={periodeAman ? [periodeAman] : []}
               allowClear
             />
-            <p className="mt-2 text-xs text-ink-muted">
+            <p className="mt-2 text-sm text-ink-muted">
               Jika periode tidak dipilih, ditampilkan periode terdekat berikutnya.
             </p>
           </div>
@@ -257,7 +257,7 @@ export default async function PrediksiPage({
                             <span className="font-medium text-ink">
                               {formatPersenBertanda(baris.prediksi)}
                             </span>
-                            <span className="block text-xs text-ink-muted">
+                            <span className="block text-sm text-ink-muted">
                               rentang {formatPersen(baris.rentangMin)} –{" "}
                               {formatPersen(baris.rentangMaks)}
                             </span>
@@ -278,7 +278,7 @@ export default async function PrediksiPage({
                   {formatAngka(ringkasUji.jumlah, 0)} kejadian,{" "}
                   {formatAngka(ringkasUji.dalamRentang, 0)} jatuh dalam rentang.
                 </p>
-                <p className="mt-3 text-xs leading-5 text-ink-muted">
+                <p className="mt-3 text-sm leading-5 text-ink-muted">
                   Dihitung dari harga harian dan tanggal kejadian: prediksi tiap kejadian memakai
                   median kejadian lain pada periode yang sama.
                 </p>
@@ -347,7 +347,7 @@ export default async function PrediksiPage({
                 </tbody>
               </table>
             </div>
-            <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-muted">
+            <p className="mt-4 border-t border-line pt-3 text-sm leading-5 text-ink-muted">
               Pembanding: harga rata-rata 30 hari sebelum periode, minimal 15 titik. Prediksi
               bukan jaminan dan tidak memperhitungkan kejadian luar biasa di masa depan.
             </p>

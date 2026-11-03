@@ -154,7 +154,7 @@ export default async function KetersediaanPage({
               </li>
             ))}
           </ul>
-          <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-muted">
+          <p className="mt-4 border-t border-line pt-3 text-sm leading-5 text-ink-muted">
             Aturan: Surplus ≥ +5%, Defisit ≤ −5%, selain itu Seimbang.
           </p>
         </Card>
@@ -319,7 +319,7 @@ export default async function KetersediaanPage({
         </>
       )}
 
-      <div className="mt-6 flex items-start gap-2 text-xs leading-5 text-ink-muted">
+      <div className="mt-6 flex items-start gap-2 text-sm leading-5 text-ink-muted">
         <Package size={15} className="mt-0.5 shrink-0" />
         <p>Sumber harga: {info.sumber}.</p>
       </div>

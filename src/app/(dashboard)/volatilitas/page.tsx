@@ -148,7 +148,7 @@ export default async function VolatilitasPage({
               ))}
             </ol>
           )}
-          <p className="mt-5 border-t border-line pt-3 text-xs leading-5 text-ink-muted">
+          <p className="mt-5 border-t border-line pt-3 text-sm leading-5 text-ink-muted">
             Simpangan baku sampel (n−1) dihitung dari harga yang tersedia. Komoditas dengan
             harga lebih tinggi tidak otomatis lebih volatil karena ukuran ini relatif terhadap
             rata-ratanya.
@@ -215,7 +215,7 @@ export default async function VolatilitasPage({
         />
       </ChartFrame>
 
-      <p className="mt-4 text-xs leading-5 text-ink-muted">
+      <p className="mt-4 text-sm leading-5 text-ink-muted">
         Lonjakan adalah indikator statistik sederhana, bukan penyebab harga. Hari kerja dengan
         data kosong tidak dihitung sebagai harga nol.
       </p>

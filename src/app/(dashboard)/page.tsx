@@ -224,7 +224,7 @@ export default async function RingkasanPage() {
         </Card>
       </div>
 
-      <p className="mt-6 text-xs leading-5 text-ink-muted">
+      <p className="mt-6 text-sm leading-5 text-ink-muted">
         Sumber harga: {ringkasan.meta.sumber}. Data terakhir:{" "}
         {formatTanggal(ringkasan.meta.tanggal_data_terakhir)}. Nilai kosong ditampilkan
         sebagai tanda “-”, bukan nol.

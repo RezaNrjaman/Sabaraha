@@ -35,7 +35,7 @@ export function RankingList({
               aria-selected={aktif}
               onClick={() => setTab(item)}
               className={cn(
-                "inline-flex min-h-10 items-center gap-1.5 rounded-[9px] px-3 text-sm font-medium transition-colors",
+                "inline-flex min-h-11 items-center gap-1.5 rounded-[9px] px-3 text-sm font-medium transition-colors",
                 aktif ? "bg-surface text-ink shadow-sm" : "text-ink-muted hover:text-ink",
               )}
             >

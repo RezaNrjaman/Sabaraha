@@ -70,7 +70,7 @@ export default async function InfoPage() {
               value={<Chip tone="netral">{info.label_ketersediaan}</Chip>}
             />
           </dl>
-          <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-muted">
+          <p className="mt-4 border-t border-line pt-3 text-sm leading-5 text-ink-muted">
             Harga mengikuti pasar tradisional dalam unduhan PIHPS Nasional. Nilai kosong pada
             sumber disimpan sebagai NULL dan ditampilkan sebagai “-”, bukan nol.
           </p>
@@ -142,7 +142,7 @@ export default async function InfoPage() {
           <ol className="space-y-3">
             {info.keterbatasan.map((item, index) => (
               <li key={item} className="flex gap-3 text-sm leading-6 text-ink-muted">
-                <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">
+                <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">
                   {index + 1}
                 </span>
                 {item}
@@ -214,7 +214,7 @@ export default async function InfoPage() {
         ))}
       </div>
 
-      <p className="mt-6 text-xs leading-5 text-ink-muted">
+      <p className="mt-6 text-sm leading-5 text-ink-muted">
         Sumber harga: {info.sumber}. Data terakhir: {formatTanggal(info.tanggal_data_terakhir)}.
         Halaman ini tidak memuat kunci akses atau kredensial basis data. Ingin kembali ke
         ringkasan? <Link href="/" className="font-medium text-primary-700 underline-offset-2 hover:underline">Buka Ringkasan</Link>.

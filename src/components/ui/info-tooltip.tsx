@@ -29,7 +29,7 @@ export function InfoTooltip({
       <button
         type="button"
         aria-label={`Penjelasan ${label}. ${text}`}
-        className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-ink-muted hover:bg-primary-50 hover:text-primary-700"
+        className="relative inline-flex size-6 shrink-0 items-center justify-center rounded-full text-ink-muted after:absolute after:-inset-2.5 after:content-[''] hover:bg-primary-50 hover:text-primary-700"
       >
         <Info size={14} />
       </button>

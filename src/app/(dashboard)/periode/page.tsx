@@ -95,7 +95,7 @@ export default async function PeriodePage({
               selected={periodeDipilih ? [periodeDipilih] : []}
               allowClear
             />
-            <p className="mt-2 text-xs text-ink-muted">
+            <p className="mt-2 text-sm text-ink-muted">
               Klik periode yang sama untuk menampilkan semua periode.
             </p>
           </div>
@@ -166,7 +166,7 @@ export default async function PeriodePage({
               </table>
             </div>
           )}
-          <p className="mt-4 border-t border-line pt-3 text-xs leading-5 text-ink-muted">
+          <p className="mt-4 border-t border-line pt-3 text-sm leading-5 text-ink-muted">
             Hanya periode yang memiliki harga rata-rata 30 hari sebelumnya (minimal 15 titik)
             yang dihitung. Jumlah kejadian rendah membuat angka ini rentan variasi; gunakan
             sebagai pola umum, bukan kepastian.
@@ -221,7 +221,7 @@ export default async function PeriodePage({
         </ChartFrame>
       </div>
 
-      <p className="mt-6 text-xs leading-5 text-ink-muted">
+      <p className="mt-6 text-sm leading-5 text-ink-muted">
         Tanggal periode menggunakan kalender resmi yang tersedia di database. Periode mendatang
         bisa bertanda perkiraan. Data harga hanya hari kerja; bulan dengan data sedikit bisa
         membuat rata-rata bulanan kurang stabil.

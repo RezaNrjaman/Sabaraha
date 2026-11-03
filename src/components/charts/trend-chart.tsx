@@ -133,7 +133,7 @@ export function TrendChart({
                         value: periode.nama,
                         position: "insideTopLeft",
                         fill: warna,
-                        fontSize: 10,
+                        fontSize: 12,
                       }
                     : undefined
                 }
