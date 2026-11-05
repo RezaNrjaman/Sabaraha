@@ -28,7 +28,7 @@ export function CardHeader({
   return (
     <div className={cn("mb-5 flex flex-wrap items-start justify-between gap-3", className)}>
       <div className="min-w-0">
-        <h2 className="text-lg font-semibold leading-7 text-ink">{title}</h2>
+        <h3 className="text-lg font-semibold leading-7 text-ink">{title}</h3>
         {description ? (
           <p className="mt-1 text-sm text-ink-muted">{description}</p>
         ) : null}

@@ -1,30 +1,34 @@
-import Link from "next/link";
 import { Activity, Info } from "lucide-react";
 
 import { CommodityIcon } from "@/components/commodity-icon";
-import { ChartFrame } from "@/components/charts/chart-frame";
-import { ProgressBar } from "@/components/charts/range-bar";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { TrendTable } from "@/components/charts/trend-table";
 import { FilterChips, ResetFilter } from "@/components/filters/filter-chips";
 import { Card } from "@/components/ui/card";
+import { ChartCard } from "@/components/ui/chart-card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar, FilterGroup } from "@/components/ui/filter-bar";
+import { HBarList, type BarisBilah } from "@/components/ui/hbar-list";
+import { Metric } from "@/components/ui/kpi-card";
+import { PageFooter } from "@/components/ui/page-footer";
 import { PageHeader } from "@/components/ui/page-header";
+import { Section } from "@/components/ui/section";
 import { fetchApiData } from "@/lib/api";
 import { findSpikes } from "@/lib/data";
 import { ambilAngka, ambilDaftar } from "@/lib/filters";
 import { formatAngka, formatPersen, formatRupiah, formatTanggal } from "@/lib/format";
 import { buildQuery, hariSebelum } from "@/lib/query";
 import type { HargaPoint, InfoData, Komoditas, Volatilitas } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 export async function VolatilitasSection({
   sp,
 }: {
   sp: Record<string, string | string[] | undefined>;
 }) {
-  const info = await fetchApiData<InfoData>("/info");
-  const semuaKomoditas = await fetchApiData<Komoditas[]>("/komoditas");
+  const [info, semuaKomoditas] = await Promise.all([
+    fetchApiData<InfoData>("/info"),
+    fetchApiData<Komoditas[]>("/komoditas"),
+  ]);
   const utama = semuaKomoditas.filter((item) => item.is_utama);
   const namaUtama = utama.map((item) => item.nama);
   const hari = [30, 90, 365].includes(ambilAngka(sp.hari, 365))
@@ -51,28 +55,45 @@ export async function VolatilitasSection({
     [namaAman]: point.harga,
   }));
 
+  const items: BarisBilah[] = volatilitas.map((item, index) => ({
+    label: item.nama,
+    sublabel: `${index + 1}. ${formatAngka(item.jumlah_titik, 0)} titik · rata-rata ${formatRupiah(item.rata_rata)}`,
+    ikon: <CommodityIcon nama={item.nama} />,
+    teks: formatPersen(item.koefisien_variasi_persen),
+    lebar: (item.koefisien_variasi_persen / maksimal) * 100,
+    tone: "primary",
+    aktif: item.nama === namaAman,
+    href: `/?bagian=volatilitas&komoditas=${encodeURIComponent(item.nama)}&hari=${hari}`,
+  }));
+
   return (
     <>
       <PageHeader
         eyebrow="Stabilitas harga"
         title="Volatilitas Harga"
         description="Komoditas dengan harga paling sering dan paling jauh berubah. Semakin tinggi koefisien variasi, semakin berisiko harga naik-turun."
-        actions={<ResetFilter href="/?bagian=volatilitas" />}
       />
 
-      <Card className="mb-6">
-        <div className="space-y-5">
-          <div>
-            <p className="mb-2 text-sm font-semibold text-ink">Komoditas</p>
+      <Section title="Saringan data" note="Pilih komoditas dan rentang waktu perhitungan volatilitas.">
+        <FilterBar
+          reset={<ResetFilter href="/?bagian=volatilitas" />}
+          meta={
+            <>
+              <span>
+                {formatTanggal(dari)} – {formatTanggal(sampai)}
+              </span>
+            </>
+          }
+        >
+          <FilterGroup label="Komoditas">
             <FilterChips
               param="komoditas"
               label="Pilih komoditas"
               options={utama.map((item) => ({ value: item.nama, label: item.nama }))}
               selected={[namaAman]}
             />
-          </div>
-          <div>
-            <p className="mb-2 text-sm font-semibold text-ink">Rentang waktu</p>
+          </FilterGroup>
+          <FilterGroup label="Rentang waktu">
             <FilterChips
               param="hari"
               label="Rentang waktu volatilitas"
@@ -82,82 +103,47 @@ export async function VolatilitasSection({
               }))}
               selected={[String(hari)]}
             />
-          </div>
-          <p className="text-sm text-ink-muted">
-            {formatTanggal(dari)} – {formatTanggal(sampai)}
-          </p>
-        </div>
-      </Card>
+          </FilterGroup>
+        </FilterBar>
+      </Section>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <Card className="xl:col-span-7">
-          <div className="mb-5 flex items-start justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-ink">Peringkat Volatilitas</h2>
-              <p className="mt-1 text-sm text-ink-muted">
-                Koefisien variasi = simpangan baku sampel ÷ rata-rata × 100.
-              </p>
+      <Section
+        title="Peringkat volatilitas"
+        note="Koefisien variasi = simpangan baku sampel ÷ rata-rata × 100. Klik satu baris untuk melihat grafiknya."
+      >
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-12">
+          <Card className="xl:col-span-7">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold text-ink">Peringkat Volatilitas</h3>
+                <p className="mt-1 text-sm text-ink-muted">
+                  Koefisien variasi = simpangan baku sampel ÷ rata-rata × 100.
+                </p>
+              </div>
+              <Activity className="shrink-0 text-primary-600" size={22} aria-hidden="true" />
             </div>
-            <Activity className="shrink-0 text-primary-600" size={22} />
-          </div>
-          {volatilitas.length === 0 ? (
-            <EmptyState title="Belum ada data volatilitas" actionHref="/?bagian=volatilitas" />
-          ) : (
-            <ol className="space-y-4">
-              {volatilitas.map((item, index) => (
-                <li key={item.komoditas_id}>
-                  <Link
-                    href={`/?bagian=volatilitas&komoditas=${encodeURIComponent(item.nama)}&hari=${hari}`}
-                    className={cn(
-                      "block rounded-ctl p-2 hover:bg-primary-50",
-                      item.nama === namaAman && "bg-primary-50",
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <span className="w-5 shrink-0 text-sm font-semibold text-ink-muted">
-                          {index + 1}
-                        </span>
-                        <CommodityIcon nama={item.nama} />
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-ink">{item.nama}</p>
-                          <p className="text-sm text-ink-muted">
-                            {formatAngka(item.jumlah_titik, 0)} titik · rata-rata{" "}
-                            {formatRupiah(item.rata_rata)}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="shrink-0 text-sm font-bold text-ink">
-                        {formatPersen(item.koefisien_variasi_persen)}
-                      </span>
-                    </div>
-                    <div className="mt-2 pl-[72px]">
-                      <ProgressBar
-                        value={item.koefisien_variasi_persen}
-                        max={maksimal}
-                        label={`Volatilitas ${item.nama} ${formatPersen(item.koefisien_variasi_persen)}`}
-                      />
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ol>
-          )}
-          <p className="mt-5 border-t border-line pt-3 text-sm leading-5 text-ink-muted">
-            Simpangan baku sampel (n−1) dihitung dari harga yang tersedia. Komoditas dengan
-            harga lebih tinggi tidak otomatis lebih volatil karena ukuran ini relatif terhadap
-            rata-ratanya.
-          </p>
-        </Card>
+            {volatilitas.length === 0 ? (
+              <EmptyState title="Belum ada data volatilitas" actionHref="/?bagian=volatilitas" />
+            ) : (
+              <HBarList items={items} ariaLabel="Peringkat volatilitas komoditas" />
+            )}
+            <p className="mt-5 border-t border-line pt-3 text-sm leading-5 text-ink-muted">
+              Simpangan baku sampel (n−1) dihitung dari harga yang tersedia. Komoditas dengan
+              harga lebih tinggi tidak otomatis lebih volatil karena ukuran ini relatif terhadap
+              rata-ratanya.
+            </p>
+          </Card>
 
-        <div className="space-y-6 xl:col-span-5">
-          <Card>
+          <Card className="flex flex-col xl:col-span-5">
             <div className="flex items-start gap-3">
-              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700">
+              <span
+                aria-hidden="true"
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700"
+              >
                 <Activity size={20} />
               </span>
-              <div>
-                <h2 className="text-lg font-semibold text-ink">{namaAman}</h2>
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold text-ink">{namaAman}</h3>
                 <p className="mt-1 text-sm text-ink-muted">
                   {peringkat
                     ? `Koefisien variasi ${formatPersen(peringkat.koefisien_variasi_persen)} · ${formatAngka(peringkat.jumlah_titik, 0)} titik`
@@ -166,21 +152,17 @@ export async function VolatilitasSection({
               </div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-4 border-t border-line pt-4">
-              <div>
-                <p className="text-sm text-ink-muted">Rata-rata harga</p>
-                <p className="mt-1 font-semibold text-ink">
-                  {peringkat ? formatRupiah(peringkat.rata_rata) : "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-ink-muted">Simpangan baku</p>
-                <p className="mt-1 font-semibold text-ink">
-                  {peringkat ? formatRupiah(peringkat.simpangan_baku) : "-"}
-                </p>
-              </div>
+              <Metric
+                label="Rata-rata harga"
+                value={peringkat ? formatRupiah(peringkat.rata_rata) : "–"}
+              />
+              <Metric
+                label="Simpangan baku"
+                value={peringkat ? formatRupiah(peringkat.simpangan_baku) : "–"}
+              />
             </div>
-            <div className="mt-4 flex items-start gap-2 rounded-ctl border border-line bg-bg px-3 py-2 text-sm text-ink-muted">
-              <Info size={16} className="mt-0.5 shrink-0" />
+            <div className="mt-auto flex items-start gap-2 rounded-ctl border border-line bg-bg px-3 py-2 pt-3 text-sm text-ink-muted">
+              <Info size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
               <p>
                 {lonjakan.length} lonjakan terdeteksi. Metode: harga di luar rata-rata ± 2
                 simpangan baku pada periode ini.
@@ -188,32 +170,33 @@ export async function VolatilitasSection({
             </div>
           </Card>
         </div>
-      </div>
+      </Section>
 
-      <ChartFrame
-        className="mt-6"
-        title={`Pergerakan Harga ${namaAman}`}
-        description="Titik merah menandai lonjakan di luar dua simpangan baku."
-        summary={`Grafik harga harian ${namaAman} dengan ${lonjakan.length} titik lonjakan pada periode ${formatTanggal(dari)} sampai ${formatTanggal(sampai)}.`}
-        table={<TrendTable data={dataHarga} series={seri} />}
-        source="Sumber: Bank Indonesia – PIHPS Nasional"
+      <Section
+        title="Pergerakan harga"
+        note="Titik merah menandai lonjakan di luar rata-rata ± 2 simpangan baku."
       >
-        <TrendChart
-          data={dataHarga}
-          series={seri}
-          spikes={lonjakan.map((point) => ({
-            tanggal: point.tanggal,
-            harga: point.harga,
-            label: "Lonjakan",
-          }))}
-          height={320}
-        />
-      </ChartFrame>
+        <ChartCard
+          title={`Pergerakan Harga ${namaAman}`}
+          description="Titik merah menandai lonjakan di luar dua simpangan baku."
+          summary={`Grafik harga harian ${namaAman} dengan ${lonjakan.length} titik lonjakan pada periode ${formatTanggal(dari)} sampai ${formatTanggal(sampai)}.`}
+          table={<TrendTable data={dataHarga} series={seri} />}
+          source="Sumber: Bank Indonesia – PIHPS Nasional"
+        >
+          <TrendChart
+            data={dataHarga}
+            series={seri}
+            spikes={lonjakan.map((point) => ({
+              tanggal: point.tanggal,
+              harga: point.harga,
+              label: "Lonjakan",
+            }))}
+            height={320}
+          />
+        </ChartCard>
+      </Section>
 
-      <p className="mt-4 text-sm leading-5 text-ink-muted">
-        Lonjakan adalah indikator statistik sederhana, bukan penyebab harga. Hari kerja dengan
-        data kosong tidak dihitung sebagai harga nol.
-      </p>
+      <PageFooter note="Lonjakan adalah indikator statistik sederhana, bukan penyebab harga. Hari kerja dengan data kosong tidak dihitung sebagai harga nol." />
     </>
   );
 }

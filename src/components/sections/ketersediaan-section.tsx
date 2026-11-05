@@ -1,12 +1,14 @@
-import { Package } from "lucide-react";
-
-import { ChartFrame } from "@/components/charts/chart-frame";
-import { DonutChart } from "@/components/charts/donut-chart";
-import { GroupedBarChart } from "@/components/charts/grouped-bar-chart";
 import { FilterChips, ResetFilter } from "@/components/filters/filter-chips";
+import { GroupedBarChart } from "@/components/charts/grouped-bar-chart";
 import { Card, CardHeader } from "@/components/ui/card";
+import { ChartCard } from "@/components/ui/chart-card";
+import { DataTable, type KolomDataTable } from "@/components/ui/data-table";
+import { DonutChart } from "@/components/charts/donut-chart";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar, FilterGroup } from "@/components/ui/filter-bar";
+import { PageFooter } from "@/components/ui/page-footer";
 import { PageHeader } from "@/components/ui/page-header";
+import { Section } from "@/components/ui/section";
 import { ProjectionChip, StatusChip } from "@/components/ui/status-chip";
 import { fetchApiData } from "@/lib/api";
 import { ambilDaftar } from "@/lib/filters";
@@ -36,9 +38,11 @@ export async function KetersediaanSection({
 }: {
   sp: Record<string, string | string[] | undefined>;
 }) {
-  const info = await fetchApiData<InfoData>("/info");
-  const semuaKomoditas = await fetchApiData<Komoditas[]>("/komoditas");
-  const status = await fetchApiData<StatusKetersediaan>("/ketersediaan/status-terkini");
+  const [info, semuaKomoditas, status] = await Promise.all([
+    fetchApiData<InfoData>("/info"),
+    fetchApiData<Komoditas[]>("/komoditas"),
+    fetchApiData<StatusKetersediaan>("/ketersediaan/status-terkini"),
+  ]);
   const utama = semuaKomoditas.filter((item) => item.is_utama);
   const namaUtama = utama.map((item) => item.nama);
   const bawaan = namaUtama.includes("Beras") ? "Beras" : (namaUtama[0] ?? "Beras");
@@ -68,151 +72,188 @@ export async function KetersediaanSection({
   );
   const menampilkanProyeksi = rows.some((row) => row.jenis_data === "proyeksi");
   const campuran = menampilkanProyeksi && rows.some((row) => row.jenis_data === "riwayat");
+  const dataBulanan = rows.map((row) => ({
+    bulan: row.bulan,
+    pasokan_ton: row.pasokan_ton,
+    kebutuhan_ton: row.kebutuhan_ton,
+  }));
+  const dataStok = rows.map((row) => ({ bulan: row.bulan, stok_akhir_ton: row.stok_akhir_ton }));
+  const statusDipilih = rows.at(-1);
   const labelRentang = OPSI_RENTANG.find((opsi) => opsi.value === rentang)?.label ?? "12 bulan";
-
   const donut = [
     { name: "Surplus", value: status.jumlah.surplus, color: "#1E7A3E" },
     { name: "Seimbang", value: status.jumlah.seimbang, color: "#1F6FA8" },
     { name: "Defisit", value: status.jumlah.defisit, color: "#B3261E" },
   ];
-  const dataBulanan = rows.map((row) => ({
-    bulan: row.bulan,
-    pasokan_ton: row.pasokan_ton,
-    kebutuhan_ton: row.kebutuhan_ton,
-    stok_akhir_ton: row.stok_akhir_ton,
-  }));
-  const dataStok = rows.map((row) => ({
-    bulan: row.bulan,
-    stok_akhir_ton: row.stok_akhir_ton,
-  }));
-  const statusDipilih = rows.at(-1);
+
+  const kolomPasokan: KolomDataTable<Ketersediaan>[] = [
+    {
+      key: "bulan",
+      header: "Bulan",
+      rata: "kiri",
+      utama: true,
+      isi: (row) => <span className="font-medium text-ink">{formatBulan(row.bulan)}</span>,
+    },
+    { key: "pasokan", header: "Pasokan", isi: (row) => formatTon(row.pasokan_ton) },
+    { key: "kebutuhan", header: "Kebutuhan", isi: (row) => formatTon(row.kebutuhan_ton) },
+    { key: "stok", header: "Stok akhir", isi: (row) => formatTon(row.stok_akhir_ton) },
+  ];
+  if (campuran) {
+    kolomPasokan.push({
+      key: "jenis",
+      header: "Jenis",
+      rata: "kiri",
+      isi: (row) => (row.jenis_data === "proyeksi" ? "Proyeksi" : "Riwayat"),
+    });
+  }
+
+  const kolomStok: KolomDataTable<Ketersediaan>[] = [
+    {
+      key: "bulan",
+      header: "Bulan",
+      rata: "kiri",
+      utama: true,
+      isi: (row) => <span className="font-medium text-ink">{formatBulan(row.bulan)}</span>,
+    },
+    { key: "stok", header: "Stok akhir", isi: (row) => formatTon(row.stok_akhir_ton) },
+    { key: "ketahanan", header: "Ketahanan", isi: (row) => formatHari(row.ketahanan_stok_hari) },
+  ];
+  if (campuran) {
+    kolomStok.push({
+      key: "jenis",
+      header: "Jenis",
+      rata: "kiri",
+      isi: (row) => (row.jenis_data === "proyeksi" ? "Proyeksi" : "Riwayat"),
+    });
+  }
 
   return (
     <>
       <PageHeader
         eyebrow="Pasokan pangan"
         title="Ketersediaan Pangan"
-        description="Status neraca, pasokan, kebutuhan, dan ketahanan stok per bulan."
-        actions={<ResetFilter href="/?bagian=ketersediaan" />}
+        description="Simulasi pasokan, kebutuhan, dan status neraca tiap komoditas utama di Kota Bandung."
       />
 
-      <Card className="mb-6">
-        <div className="space-y-5">
-          <div>
-            <p className="mb-2 text-sm font-semibold text-ink">Komoditas</p>
+      <Section title="Saringan data" note="Pilih komoditas dan rentang data yang ditampilkan.">
+        <FilterBar reset={<ResetFilter href="/?bagian=ketersediaan" />}>
+          <FilterGroup label="Komoditas">
             <FilterChips
               param="komoditas"
               label="Pilih komoditas ketersediaan"
               options={utama.map((item) => ({ value: item.nama, label: item.nama }))}
               selected={[namaAman]}
             />
-          </div>
-          <div>
-            <p className="mb-2 text-sm font-semibold text-ink">Rentang data</p>
+          </FilterGroup>
+          <FilterGroup
+            label="Rentang data"
+            hint={
+              menampilkanProyeksi
+                ? "Bagian proyeksi (Nov 2026–Des 2032) merupakan simulasi tren, bukan ramalan resmi."
+                : "Riwayat memakai bulan riwayat terakhir, tanpa proyeksi."
+            }
+          >
             <FilterChips
               param="rentang"
               label="Rentang data ketersediaan"
               options={OPSI_RENTANG}
               selected={[rentang]}
             />
+          </FilterGroup>
+        </FilterBar>
+
+        {menampilkanProyeksi ? (
+          <div className="mt-4 flex items-start gap-3 rounded-card border border-primary-200 bg-primary-50 p-4">
+            <ProjectionChip />
+            <p className="text-sm leading-6 text-ink">
+              Menampilkan <span className="font-semibold">{labelRentang}</span>. Status neraca
+              terkini di atas tetap memakai bulan riwayat terakhir (
+              {formatBulan(status.bulan)}), tidak termasuk proyeksi.
+            </p>
           </div>
-        </div>
-      </Card>
+        ) : null}
+      </Section>
 
-      {menampilkanProyeksi ? (
-        <div className="mb-6 flex items-start gap-3 rounded-card border border-primary-200 bg-primary-50 p-4">
-          <ProjectionChip />
-          <p className="text-sm leading-6 text-ink">
-            Menampilkan <span className="font-semibold">{labelRentang}</span>. Bagian{" "}
-            <span className="font-semibold">proyeksi</span> (Nov 2026–Des 2032) merupakan proyeksi
-            tren, bukan ramalan resmi. Status neraca terkini di atas tetap memakai bulan riwayat
-            terakhir (Okt 2026), tidak termasuk proyeksi.
-          </p>
-        </div>
-      ) : null}
+      <Section
+        title="Status pasokan"
+        note="Aturan status: Surplus ≥ +5%, Defisit ≤ −5%, selain itu Seimbang."
+      >
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-12">
+          <Card className="xl:col-span-5">
+            <CardHeader
+              title="Status Ketersediaan"
+              description={`Bulan ${formatBulan(status.bulan)} · ${status.total} komoditas`}
+            />
+            <DonutChart data={donut} totalLabel="komoditas" />
+            <ul className="mt-3 space-y-2" aria-label="Legenda status ketersediaan">
+              {donut.map((item) => (
+                <li key={item.name} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="flex items-center gap-2 text-ink-muted">
+                    <span
+                      aria-hidden="true"
+                      className="size-3 rounded-[3px]"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    {item.name}
+                  </span>
+                  <span className="font-semibold tabular-nums text-ink">{item.value}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 border-t border-line pt-3 text-sm leading-5 text-ink-muted">
+              Status dihitung dari rasio neraca bulan riwayat terbaru.
+            </p>
+          </Card>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <Card className="xl:col-span-5">
-          <CardHeader
-            title="Status Ketersediaan"
-            description={`Bulan ${formatBulan(status.bulan)} · ${status.total} komoditas`}
-          />
-          <DonutChart data={donut} totalLabel="komoditas" />
-          <ul className="mt-2 space-y-2" aria-label="Legenda status ketersediaan">
-            {donut.map((item) => (
-              <li key={item.name} className="flex items-center justify-between gap-3 text-sm">
-                <span className="flex items-center gap-2 text-ink-muted">
-                  <span className="size-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                  {item.name}
-                </span>
-                <span className="font-semibold text-ink">{item.value}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 border-t border-line pt-3 text-sm leading-5 text-ink-muted">
-            Aturan: Surplus ≥ +5%, Defisit ≤ −5%, selain itu Seimbang.
-          </p>
-        </Card>
-
-        <Card className="xl:col-span-7">
-          <CardHeader
-            title="Status per Komoditas"
-            description={`Bulan riwayat terbaru ${formatBulan(status.bulan)}`}
-          />
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-            {status.komoditas.map((item) => (
-              <div key={item.komoditas_id} className="min-w-0 rounded-ctl border border-line p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="min-w-0 font-semibold leading-5 text-ink">{item.nama}</p>
-                  <StatusChip status={item.status_neraca} />
+          <Card className="xl:col-span-7">
+            <CardHeader
+              title="Status per Komoditas"
+              description={`Bulan riwayat terbaru ${formatBulan(status.bulan)}`}
+            />
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+              {status.komoditas.map((item) => (
+                <div
+                  key={item.komoditas_id}
+                  className="flex min-w-0 flex-col rounded-ctl border border-line p-3"
+                >
+                  <p className="font-semibold leading-5 text-ink">{item.nama}</p>
+                  <div className="mt-2">
+                    <StatusChip status={item.status_neraca} />
+                  </div>
+                  <p className="mt-2 text-sm leading-5 text-ink-muted">
+                    Rasio neraca {formatPersen(item.rasio_neraca_persen)}
+                  </p>
                 </div>
-                <p className="mt-2 text-sm text-ink-muted">
-                  Rasio neraca {formatPersen(item.rasio_neraca_persen)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </Section>
 
       {rows.length === 0 ? (
-        <div className="mt-6">
+        <Section
+          title="Pasokan dan kebutuhan"
+          note={`Data ${namaAman} pada rentang ${labelRentang}.`}
+        >
           <EmptyState actionHref="/?bagian=ketersediaan" />
-        </div>
+        </Section>
       ) : (
-        <>
-          <ChartFrame
-            className="mt-6"
+        <Section
+          title="Pasokan dan kebutuhan"
+          note={`Per bulan, dalam ton. Rentang: ${labelRentang}.`}
+        >
+          <ChartCard
             title={`Pasokan vs Kebutuhan ${namaAman}`}
             description={`Per bulan, dalam ton. Rentang: ${labelRentang}.`}
             summary={`Grafik batang pasokan dan kebutuhan ${namaAman} per bulan dari ${formatBulan(rows[0]?.bulan)} sampai ${formatBulan(rows.at(-1)?.bulan)}.`}
             table={
-              <table className="w-full min-w-[520px] border-collapse text-sm">
-                <thead className="sticky top-0 bg-bg text-left text-ink-muted">
-                  <tr>
-                    <th className="px-3 py-2 font-medium">Bulan</th>
-                    <th className="px-3 py-2 font-medium">Pasokan</th>
-                    <th className="px-3 py-2 font-medium">Kebutuhan</th>
-                    <th className="px-3 py-2 font-medium">Stok akhir</th>
-                    {campuran ? <th className="px-3 py-2 font-medium">Jenis</th> : null}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr key={row.bulan} className="border-t border-line">
-                      <td className="px-3 py-2">{formatBulan(row.bulan)}</td>
-                      <td className="px-3 py-2">{formatTon(row.pasokan_ton)}</td>
-                      <td className="px-3 py-2">{formatTon(row.kebutuhan_ton)}</td>
-                      <td className="px-3 py-2">{formatTon(row.stok_akhir_ton)}</td>
-                      {campuran ? (
-                        <td className="px-3 py-2">
-                          {row.jenis_data === "proyeksi" ? "Proyeksi" : "Riwayat"}
-                        </td>
-                      ) : null}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <DataTable
+                kolom={kolomPasokan}
+                baris={rows}
+                kunci={(row) => row.bulan}
+                caption={`Pasokan dan kebutuhan ${namaAman} per bulan`}
+                minLebar={520}
+              />
             }
           >
             <GroupedBarChart
@@ -226,39 +267,22 @@ export async function KetersediaanSection({
               yFormat="ton"
               height={300}
             />
-          </ChartFrame>
+          </ChartCard>
 
-          <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-12">
-            <ChartFrame
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:mt-6 sm:gap-6 xl:grid-cols-12">
+            <ChartCard
               className="xl:col-span-8"
               title={`Stok Akhir ${namaAman}`}
               description={`Sisa stok pada akhir bulan, dalam ton. Rentang: ${labelRentang}.`}
               summary={`Grafik stok akhir ${namaAman} per bulan dari ${formatBulan(rows[0]?.bulan)} sampai ${formatBulan(rows.at(-1)?.bulan)}.`}
               table={
-                <table className="w-full min-w-[420px] border-collapse text-sm">
-                  <thead className="sticky top-0 bg-bg text-left text-ink-muted">
-                    <tr>
-                      <th className="px-3 py-2 font-medium">Bulan</th>
-                      <th className="px-3 py-2 font-medium">Stok akhir</th>
-                      <th className="px-3 py-2 font-medium">Ketahanan</th>
-                      {campuran ? <th className="px-3 py-2 font-medium">Jenis</th> : null}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((row) => (
-                      <tr key={row.bulan} className="border-t border-line">
-                        <td className="px-3 py-2">{formatBulan(row.bulan)}</td>
-                        <td className="px-3 py-2">{formatTon(row.stok_akhir_ton)}</td>
-                        <td className="px-3 py-2">{formatHari(row.ketahanan_stok_hari)}</td>
-                        {campuran ? (
-                          <td className="px-3 py-2">
-                            {row.jenis_data === "proyeksi" ? "Proyeksi" : "Riwayat"}
-                          </td>
-                        ) : null}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <DataTable
+                  kolom={kolomStok}
+                  baris={rows}
+                  kunci={(row) => row.bulan}
+                  caption={`Stok akhir dan ketahanan stok ${namaAman} per bulan`}
+                  minLebar={420}
+                />
               }
             >
               <GroupedBarChart
@@ -269,55 +293,55 @@ export async function KetersediaanSection({
                 yFormat="ton"
                 height={300}
               />
-            </ChartFrame>
+            </ChartCard>
 
-            <Card className="xl:col-span-4">
+            <Card className="flex flex-col xl:col-span-4">
               <CardHeader
                 title={
                   menampilkanProyeksi && statusDipilih?.jenis_data === "proyeksi"
                     ? "Ringkasan Bulan Proyeksi"
                     : "Ringkasan Bulan Terbaru"
                 }
-                description={statusDipilih ? formatBulan(statusDipilih.bulan) : "-"}
+                description={statusDipilih ? formatBulan(statusDipilih.bulan) : "–"}
                 action={
                   statusDipilih?.jenis_data === "proyeksi" ? <ProjectionChip /> : null
                 }
               />
-              <dl className="space-y-4 text-sm">
+              <dl className="space-y-4 text-base">
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-ink-muted">Pasokan</dt>
-                  <dd className="font-semibold text-ink">
-                    {statusDipilih ? formatTon(statusDipilih.pasokan_ton) : "-"}
+                  <dd className="font-semibold tabular-nums text-ink">
+                    {statusDipilih ? formatTon(statusDipilih.pasokan_ton) : "–"}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-ink-muted">Kebutuhan</dt>
-                  <dd className="font-semibold text-ink">
-                    {statusDipilih ? formatTon(statusDipilih.kebutuhan_ton) : "-"}
+                  <dd className="font-semibold tabular-nums text-ink">
+                    {statusDipilih ? formatTon(statusDipilih.kebutuhan_ton) : "–"}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-ink-muted">Neraca</dt>
-                  <dd className="font-semibold text-ink">
-                    {statusDipilih ? formatTon(statusDipilih.neraca_ton) : "-"}
+                  <dd className="font-semibold tabular-nums text-ink">
+                    {statusDipilih ? formatTon(statusDipilih.neraca_ton) : "–"}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-ink-muted">Ketahanan stok</dt>
-                  <dd className="font-semibold text-ink">
-                    {statusDipilih ? formatHari(statusDipilih.ketahanan_stok_hari) : "-"}
+                  <dd className="font-semibold tabular-nums text-ink">
+                    {statusDipilih ? formatHari(statusDipilih.ketahanan_stok_hari) : "–"}
                   </dd>
                 </div>
               </dl>
+              <p className="mt-auto border-t border-line pt-3 text-sm leading-5 text-ink-muted">
+                Simulasi pasokan–kebutuhan, bukan data resmi.
+              </p>
             </Card>
           </div>
-        </>
+        </Section>
       )}
 
-      <div className="mt-6 flex items-start gap-2 text-sm leading-5 text-ink-muted">
-        <Package size={15} className="mt-0.5 shrink-0" />
-        <p>Sumber harga: {info.sumber}.</p>
-      </div>
+      <PageFooter note={<>Sumber harga: {info.sumber}. Data ketersediaan adalah simulasi (dummy), bukan data resmi.</>} />
     </>
   );
 }

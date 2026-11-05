@@ -11,6 +11,7 @@ import { ChartCard } from "@/components/ui/chart-card";
 import { DonutChart } from "@/components/charts/donut-chart";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { TrendTable } from "@/components/charts/trend-table";
+import { PageFooter } from "@/components/ui/page-footer";
 import { KpiCard, Metric } from "@/components/ui/kpi-card";
 import { PriceTable } from "@/components/dashboard/price-table";
 import { RankingList } from "@/components/dashboard/ranking-list";
@@ -325,11 +326,15 @@ export async function RingkasanSection() {
         </div>
       </Section>
 
-      <footer className="mt-8 border-t border-line pt-4 text-sm leading-5 text-ink-muted">
-        Sumber harga: {ringkasan.meta.sumber}. Data terakhir:{" "}
-        {formatTanggal(ringkasan.meta.tanggal_data_terakhir)}. Nilai kosong ditampilkan sebagai
-        tanda “–”, bukan nol.
-      </footer>
+      <PageFooter
+        note={
+          <>
+            Sumber harga: {ringkasan.meta.sumber}. Data terakhir:{" "}
+            {formatTanggal(ringkasan.meta.tanggal_data_terakhir)}. Nilai kosong ditampilkan
+            sebagai tanda “–”, bukan nol.
+          </>
+        }
+      />
     </>
   );
 }

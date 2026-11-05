@@ -13,6 +13,8 @@ export type BarisBilah = {
   tone?: "primary" | "naik" | "turun";
   /** Bila ada, seluruh baris menjadi tautan. */
   href?: string;
+  /** Tandai baris yang sedang dipilih (latar hijau muda). */
+  aktif?: boolean;
 };
 
 const toneBar: Record<NonNullable<BarisBilah["tone"]>, string> = {
@@ -44,12 +46,16 @@ export function HBarList({
           {item.href ? (
             <a
               href={item.href}
-              className={cn(gridBaris, "hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-primary-500")}
+              className={cn(
+                gridBaris,
+                "hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-primary-500",
+                item.aktif && "bg-primary-50",
+              )}
             >
               <IsiBaris item={item} />
             </a>
           ) : (
-            <div className={gridBaris}>
+            <div className={cn(gridBaris, item.aktif && "bg-primary-50")}>
               <IsiBaris item={item} />
             </div>
           )}

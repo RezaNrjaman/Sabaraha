@@ -1,4 +1,4 @@
-import { ArrowUpRight, CalendarRange } from "lucide-react";
+import { CalendarRange } from "lucide-react";
 
 import { TrendChart } from "@/components/charts/trend-chart";
 import { TrendTable } from "@/components/charts/trend-table";
@@ -7,6 +7,7 @@ import { ChartCard } from "@/components/ui/chart-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar, FilterGroup } from "@/components/ui/filter-bar";
 import { Metric } from "@/components/ui/kpi-card";
+import { PageFooter } from "@/components/ui/page-footer";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { fetchApiData } from "@/lib/api";
@@ -237,18 +238,7 @@ export async function TrenSection({
         </ChartCard>
       </Section>
 
-      <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-sm leading-5 text-ink-muted">
-        <p>
-          Hari libur dan akhir pekan tidak memiliki data. Garis tidak disambung melewati nilai
-          kosong.
-        </p>
-        <a
-          href="/info"
-          className="inline-flex min-h-11 items-center gap-1 font-medium text-primary-700 hover:underline"
-        >
-          Sumber dan metode <ArrowUpRight size={16} aria-hidden="true" />
-        </a>
-      </footer>
+      <PageFooter note="Hari libur dan akhir pekan tidak memiliki data. Garis tidak disambung melewati nilai kosong." />
     </>
   );
 }
