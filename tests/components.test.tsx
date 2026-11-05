@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { ChartFrame } from "@/components/charts/chart-frame";
+import { ChartCard } from "@/components/ui/chart-card";
 import { BagianTabs } from "@/components/dashboard/bagian-tabs";
 import { PriceTable } from "@/components/dashboard/price-table";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -21,11 +21,11 @@ describe("StatusChip", () => {
   });
 });
 
-describe("ChartFrame", () => {
+describe("ChartCard", () => {
   it("menampilkan tabel alternatif setelah tombol diklik", async () => {
     const user = userEvent.setup();
     render(
-      <ChartFrame
+      <ChartCard
         title="Grafik contoh"
         summary="Ringkasan grafik contoh"
         table={
@@ -39,7 +39,7 @@ describe("ChartFrame", () => {
         }
       >
         <div>isi grafik</div>
-      </ChartFrame>,
+      </ChartCard>,
     );
 
     expect(screen.getByRole("img", { name: "Ringkasan grafik contoh" })).toBeInTheDocument();

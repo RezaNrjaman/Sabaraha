@@ -26,7 +26,7 @@ export function Topbar({
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
       <div className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="/" className="flex min-w-0 items-center gap-2 md:hidden">
+        <Link href="/" className="flex min-h-11 min-w-0 items-center gap-2 md:hidden">
           <span className="inline-flex size-9 items-center justify-center rounded-ctl bg-primary-600 text-white">
             <Database size={18} />
           </span>

@@ -25,7 +25,7 @@ export function MobileNav() {
               href={item.href}
               aria-current={aktif ? "page" : undefined}
               className={cn(
-                "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-ctl px-0.5 text-xs font-medium",
+                "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-ctl px-0.5 text-sm font-medium",
                 aktif ? "bg-primary-600 text-white" : "text-ink-muted hover:bg-primary-50",
               )}
             >
