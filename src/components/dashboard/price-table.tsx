@@ -1,10 +1,12 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { CommodityIcon } from "@/components/commodity-icon";
-import { Sparkline } from "@/components/charts/sparkline";
+import { SparklineMini } from "@/components/charts/sparkline";
+import { DataTable, type KolomDataTable } from "@/components/ui/data-table";
+import { FilterGroup } from "@/components/ui/filter-bar";
 import { ChangeChip, StatusChip } from "@/components/ui/status-chip";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { formatRupiah, formatTanggalPendek, statusHarga } from "@/lib/format";
@@ -22,33 +24,6 @@ const filterStatus: Array<HargaStatus | "Semua"> = ["Semua", "Naik", "Turun", "S
  */
 function status30(item: HargaTerkini): HargaStatus {
   return statusHarga(item.perubahan.tiga_puluh_hari);
-}
-
-function SortLabel({
-  kolom,
-  label,
-  sortKey,
-  sortDir,
-  onSort,
-}: {
-  kolom: SortKey;
-  label: string;
-  sortKey: SortKey;
-  sortDir: SortDir;
-  onSort: (key: SortKey) => void;
-}) {
-  const aktif = sortKey === kolom;
-  const Icon = aktif && sortDir === "asc" ? ArrowUp : ArrowDown;
-  return (
-    <button
-      type="button"
-      onClick={() => onSort(kolom)}
-      className="inline-flex min-h-11 items-center gap-1 rounded text-left text-sm font-medium text-ink-muted hover:text-primary-700"
-    >
-      {label}
-      <Icon size={13} className={cn(!aktif && "opacity-30")} />
-    </button>
-  );
 }
 
 export function PriceTable({ data }: { data: HargaTerkini[] }) {
@@ -92,141 +67,181 @@ export function PriceTable({ data }: { data: HargaTerkini[] }) {
     }
   }
 
+  const urut = (key: SortKey) => ({
+    aktif: sortKey === key,
+    arah: sortKey === key ? sortDir : ("desc" as const),
+    onUbah: () => ubahSort(key),
+  });
+
+  const kolom: KolomDataTable<HargaTerkini>[] = [
+    {
+      key: "nama",
+      header: "Komoditas",
+      rata: "kiri",
+      utama: true,
+      urut: urut("nama"),
+      isi: (item) => (
+        <div className="flex items-center gap-3">
+          <CommodityIcon nama={item.nama} />
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-ink">{item.nama}</p>
+            <p className="truncate text-sm text-ink-muted">
+              Data {formatTanggalPendek(item.tanggal_terkini)}
+            </p>
+          </div>
+        </div>
+      ),
+      isiPonsel: (item) => (
+        <div className="flex items-center gap-3">
+          <CommodityIcon nama={item.nama} />
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-ink">{item.nama}</p>
+            <p className="truncate text-sm text-ink-muted">
+              Data {formatTanggalPendek(item.tanggal_terkini)}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "harga",
+      header: "Harga terkini",
+      urut: urut("harga"),
+      isi: (item) => (
+        <span className="font-semibold text-ink">
+          {formatRupiah(item.harga_terkini, item.satuan)}
+        </span>
+      ),
+    },
+    {
+      key: "satu",
+      header: "1 hari",
+      urut: urut("satu"),
+      isi: (item) => <ChangeChip value={item.perubahan.satu_hari} />,
+    },
+    {
+      key: "tujuh",
+      header: "7 hari",
+      urut: urut("tujuh"),
+      isi: (item) => <ChangeChip value={item.perubahan.tujuh_hari} />,
+    },
+    {
+      key: "tiga_puluh",
+      header: "30 hari",
+      urut: urut("tiga_puluh"),
+      isi: (item) => <ChangeChip value={item.perubahan.tiga_puluh_hari} />,
+    },
+    {
+      key: "status",
+      header: "Status 30 hari",
+      rata: "kiri",
+      isi: (item) => <StatusChip status={status30(item)} />,
+      isiPonsel: (item) => <StatusChip status={status30(item)} />,
+    },
+    {
+      key: "grafik",
+      header: "30 hari terakhir",
+      className: "hidden xl:table-cell",
+      isi: (item) => (
+        <div className="flex justify-end">
+          <SparklineMini data={item.grafik_mini} label={`Grafik mini ${item.nama}`} />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div>
-      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <label className="relative block w-full lg:max-w-xs">
-          <span className="sr-only">Cari komoditas</span>
-          <Search
-            size={18}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted"
-          />
-          <input
-            type="search"
-            value={cari}
-            onChange={(event) => setCari(event.target.value)}
-            placeholder="Cari komoditas…"
-            className="h-12 w-full rounded-ctl border border-line bg-surface pl-10 pr-3 text-base text-ink placeholder:text-ink-muted/70 focus:border-primary-500"
-          />
-        </label>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter status harga">
-          {filterStatus.map((item) => (
-            <button
-              key={item}
-              type="button"
-              aria-pressed={status === item}
-              onClick={() => setStatus(item)}
-              className={cn(
-                "min-h-11 rounded-full border px-3 text-sm font-medium transition-colors",
-                status === item
-                  ? "border-primary-600 bg-primary-50 text-primary-700"
-                  : "border-line bg-surface text-ink-muted hover:border-primary-500",
-              )}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-      </div>
+      <div className="mb-5 flex flex-wrap items-start gap-x-6 gap-y-4">
+        <FilterGroup label="Cari komoditas" className="lg:max-w-xs">
+          <label className="relative block">
+            <span className="sr-only">Cari komoditas</span>
+            <Search
+              size={18}
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted"
+            />
+            <input
+              type="search"
+              value={cari}
+              onChange={(event) => setCari(event.target.value)}
+              placeholder="Ketik nama komoditas…"
+              className="h-12 w-full rounded-ctl border border-line bg-surface pl-10 pr-3 text-base text-ink placeholder:text-ink-muted/70 focus:border-primary-500"
+            />
+          </label>
+        </FilterGroup>
 
-      {hasil.length === 0 ? (
-        <div className="rounded-ctl border border-dashed border-line px-6 py-10 text-center text-ink-muted">
-          Tidak ada komoditas yang cocok. Coba kata kunci atau filter lain.
-        </div>
-      ) : null}
-
-      <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[880px] border-collapse text-base">
-          <thead>
-            <tr className="border-b border-line text-left">
-              <th scope="col" className="px-2 py-2" aria-sort={sortKey === "nama" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                <SortLabel kolom="nama" label="Komoditas" sortKey={sortKey} sortDir={sortDir} onSort={ubahSort} />
-              </th>
-              <th scope="col" className="px-2 py-2" aria-sort={sortKey === "harga" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                <SortLabel kolom="harga" label="Harga terkini" sortKey={sortKey} sortDir={sortDir} onSort={ubahSort} />
-              </th>
-              <th scope="col" className="px-2 py-2" aria-sort={sortKey === "satu" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                <SortLabel kolom="satu" label="1 hari" sortKey={sortKey} sortDir={sortDir} onSort={ubahSort} />
-              </th>
-              <th scope="col" className="px-2 py-2" aria-sort={sortKey === "tujuh" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                <SortLabel kolom="tujuh" label="7 hari" sortKey={sortKey} sortDir={sortDir} onSort={ubahSort} />
-              </th>
-              <th scope="col" className="px-2 py-2" aria-sort={sortKey === "tiga_puluh" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
-                <SortLabel kolom="tiga_puluh" label="30 hari" sortKey={sortKey} sortDir={sortDir} onSort={ubahSort} />
-              </th>
-              <th scope="col" className="px-2 py-2">
-                <InfoTooltip
-                  label="Status 30 hari"
-                  text="Naik bila perubahan lebih dari +1%, turun bila kurang dari −1%."
-                  align="right"
-                />
-              </th>
-              <th scope="col" className="px-2 py-2 text-sm font-medium text-ink-muted">30 hari terakhir</th>
-            </tr>
-          </thead>
-          <tbody>
-            {hasil.map((item) => (
-              <tr key={item.komoditas_id} className="border-b border-line/80 hover:bg-primary-50/60">
-                <td className="px-2 py-3">
-                  <div className="flex items-center gap-3">
-                    <CommodityIcon nama={item.nama} />
-                    <div>
-                      <p className="font-semibold text-ink">{item.nama}</p>
-                      <p className="text-sm text-ink-muted">Data {formatTanggalPendek(item.tanggal_terkini)}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-2 py-3 font-semibold text-ink">
-                  {formatRupiah(item.harga_terkini, item.satuan)}
-                </td>
-                <td className="px-2 py-3">
-                  <ChangeChip value={item.perubahan.satu_hari} />
-                </td>
-                <td className="px-2 py-3">
-                  <ChangeChip value={item.perubahan.tujuh_hari} />
-                </td>
-                <td className="px-2 py-3">
-                  <ChangeChip value={item.perubahan.tiga_puluh_hari} />
-                </td>
-                <td className="px-2 py-3">
-                  <StatusChip status={status30(item)} />
-                </td>
-                <td className="px-2 py-3">
-                  <Sparkline data={item.grafik_mini} label={`Grafik mini ${item.nama}`} />
-                </td>
-              </tr>
+        <FilterGroup label="Status 30 hari">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Filter status harga">
+            {filterStatus.map((item) => (
+              <button
+                key={item}
+                type="button"
+                aria-pressed={status === item}
+                onClick={() => setStatus(item)}
+                className={cn(
+                  "min-h-11 rounded-full border px-3 text-sm font-medium transition-colors",
+                  status === item
+                    ? "border-primary-600 bg-primary-50 text-primary-700"
+                    : "border-line bg-surface text-ink-muted hover:border-primary-500",
+                )}
+              >
+                {item}
+              </button>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </FilterGroup>
+
+        <div className="ml-auto shrink-0 pt-7">
+          <InfoTooltip
+            label="Status 30 hari"
+            text="Naik bila perubahan lebih dari +1%, turun bila kurang dari −1%."
+            align="right"
+          />
+        </div>
       </div>
 
-      <div className="space-y-3 md:hidden">
-        {hasil.map((item) => (
-          <article key={item.komoditas_id} className="rounded-ctl border border-line bg-surface p-4">
+      <DataTable
+        kolom={kolom}
+        baris={hasil}
+        kunci={(item) => String(item.komoditas_id)}
+        caption="Harga komoditas terkini dan perubahannya"
+        minLebar={720}
+        kosong={
+          <div className="rounded-ctl border border-dashed border-line px-6 py-10 text-center text-ink-muted">
+            Tidak ada komoditas yang cocok. Coba kata kunci atau filter lain.
+          </div>
+        }
+        kartuPonsel={(item) => (
+          <article>
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
                 <CommodityIcon nama={item.nama} />
                 <div className="min-w-0">
-                  <p className="font-semibold text-ink">{item.nama}</p>
-                  <p className="text-sm text-ink-muted">Data {formatTanggalPendek(item.tanggal_terkini)}</p>
+                  <p className="truncate font-semibold text-ink">{item.nama}</p>
+                  <p className="truncate text-sm text-ink-muted">
+                    Data {formatTanggalPendek(item.tanggal_terkini)}
+                  </p>
                 </div>
               </div>
               <StatusChip status={status30(item)} />
             </div>
             <div className="mt-4 flex items-end justify-between gap-3">
-              <div>
-                <p className="text-xl font-bold text-ink">{formatRupiah(item.harga_terkini, item.satuan)}</p>
+              <div className="min-w-0">
+                <p className="text-xl font-bold tabular-nums text-ink">
+                  {formatRupiah(item.harga_terkini, item.satuan)}
+                </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <ChangeChip value={item.perubahan.satu_hari} label="1 hari" />
                   <ChangeChip value={item.perubahan.tujuh_hari} label="7 hari" />
                   <ChangeChip value={item.perubahan.tiga_puluh_hari} label="30 hari" />
                 </div>
               </div>
-              <Sparkline data={item.grafik_mini} label={`Grafik mini ${item.nama}`} />
+              <SparklineMini data={item.grafik_mini} label={`Grafik mini ${item.nama}`} />
             </div>
           </article>
-        ))}
-      </div>
+        )}
+      />
     </div>
   );
 }

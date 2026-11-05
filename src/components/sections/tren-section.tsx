@@ -1,13 +1,14 @@
 import { ArrowUpRight, CalendarRange } from "lucide-react";
 
-import { ChartFrame } from "@/components/charts/chart-frame";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { TrendTable } from "@/components/charts/trend-table";
-import { Metric } from "@/components/dashboard/kpi-card";
 import { FilterChips, ResetFilter } from "@/components/filters/filter-chips";
-import { Card } from "@/components/ui/card";
+import { ChartCard } from "@/components/ui/chart-card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar, FilterGroup } from "@/components/ui/filter-bar";
+import { Metric } from "@/components/ui/kpi-card";
 import { PageHeader } from "@/components/ui/page-header";
+import { Section } from "@/components/ui/section";
 import { fetchApiData } from "@/lib/api";
 import { bandsPeriode, buildAverageIndex, buildIndexComparison, pivotHarga, ringkasAngka } from "@/lib/data";
 import { ambilAngka, ambilDaftar } from "@/lib/filters";
@@ -117,13 +118,24 @@ export async function TrenSection({
             ? `Harga ${agregasiAman} dari ${formatTanggal(dari)} sampai ${formatTanggal(sampai)}. Hari tanpa data tidak diisi nol.`
             : "Perbandingan memakai indeks: harga awal tiap komoditas dianggap 100, sehingga harga berbeda tetap bisa dibandingkan."
         }
-        actions={<ResetFilter href="/?bagian=tren" />}
       />
 
-      <Card className="mb-6">
-        <div className="space-y-5">
-          <div>
-            <p className="mb-2 text-sm font-semibold text-ink">Komoditas</p>
+      <Section
+        title="Saringan data"
+        note="Atur komoditas, rentang waktu, dan cara data dirangkum. Pilihan berlaku langsung pada grafik."
+      >
+        <FilterBar
+          reset={<ResetFilter href="/?bagian=tren" />}
+          meta={
+            <>
+              <CalendarRange size={16} aria-hidden="true" />
+              <span>
+                {formatTanggal(dari)} – {formatTanggal(sampai)} · {rows.length} titik data
+              </span>
+            </>
+          }
+        >
+          <FilterGroup label="Komoditas">
             <FilterChips
               param="komoditas"
               label="Pilih komoditas, maksimal 5"
@@ -135,101 +147,108 @@ export async function TrenSection({
             <p className="mt-2 text-sm text-ink-muted">
               Pilih 2–5 komoditas untuk membandingkan. Grafik otomatis memakai indeks.
             </p>
-          </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div>
-              <p className="mb-2 text-sm font-semibold text-ink">Rentang waktu</p>
-              <FilterChips
-                param="hari"
-                label="Rentang waktu"
-                options={OPSI_HARI.map((item) => ({
-                  value: String(item),
-                  label: item === 365 ? "1 tahun" : `${item} hari`,
-                }))}
-                selected={[String(hari)]}
-              />
-            </div>
-            <div>
-              <p className="mb-2 text-sm font-semibold text-ink">Agregasi</p>
-              <FilterChips
-                param="agregasi"
-                label="Agregasi data"
-                options={OPSI_AGREGASI}
-                selected={[agregasiAman]}
-              />
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-ink-muted">
-            <CalendarRange size={16} />
-            {formatTanggal(dari)} – {formatTanggal(sampai)} · {rows.length} titik data
-          </div>
-        </div>
-      </Card>
+          </FilterGroup>
+          <FilterGroup label="Rentang waktu">
+            <FilterChips
+              param="hari"
+              label="Rentang waktu"
+              options={OPSI_HARI.map((item) => ({
+                value: String(item),
+                label: item === 365 ? "1 tahun" : `${item} hari`,
+              }))}
+              selected={[String(hari)]}
+            />
+          </FilterGroup>
+          <FilterGroup label="Agregasi">
+            <FilterChips
+              param="agregasi"
+              label="Agregasi data"
+              options={OPSI_AGREGASI}
+              selected={[agregasiAman]}
+            />
+          </FilterGroup>
+        </FilterBar>
+      </Section>
 
-      <ChartFrame
-        title={satuKomoditas ? `Pergerakan Harga ${namaDipilih[0]}` : "Indeks Perbandingan Harga"}
-        description={
+      <Section
+        title="Pergerakan harga"
+        note={
           satuKomoditas
-            ? `Nilai ${agregasiAman}, Kota Bandung`
+            ? `Nilai ${agregasiAman}, Kota Bandung. Garis putus-putus menandai rata-rata periode.`
             : "Semua seri dimulai dari 100 pada titik awal yang tersedia."
         }
-        summary={
-          satuKomoditas
-            ? `Grafik harga ${namaDipilih[0]} dari ${formatTanggal(dari)} sampai ${formatTanggal(sampai)}.`
-            : `Grafik indeks perbandingan ${namaDipilih.join(", ")}.`
-        }
-        table={<TrendTable data={dataGrafik} series={seri} mode={satuKomoditas ? "harga" : "indeks"} />}
-        footer={
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Metric
-              label="Rata-rata"
-              value={satuKomoditas ? formatRupiah(ringkas.rataRata) : Number(ringkas.rataRata ?? 0).toFixed(1)}
-              hint={satuKomoditas ? undefined : "Indeks"}
-            />
-            <Metric
-              label="Tertinggi"
-              value={
-                satuKomoditas
-                  ? formatRupiah(ringkas.tertinggi)
-                  : Number(ringkas.tertinggi ?? 0).toFixed(1)
-              }
-              hint={
-                titikTertinggi
-                  ? formatTanggal(titikTertinggi.tanggal)
-                  : undefined
-              }
-            />
-            <Metric
-              label="Perubahan periode"
-              value={formatPersenBertanda(perubahan)}
-              hint={satuKomoditas ? "Harga awal ke akhir" : "Indeks awal ke akhir"}
-            />
-          </div>
-        }
-        source="Sumber: Bank Indonesia – PIHPS Nasional"
       >
-        <TrendChart
-          data={dataGrafik}
-          series={seri}
-          periods={pita}
-          mode={satuKomoditas ? "harga" : "indeks"}
-          showArea={satuKomoditas}
-          height={340}
-        />
-      </ChartFrame>
+        <ChartCard
+          title={satuKomoditas ? `Pergerakan Harga ${namaDipilih[0]}` : "Indeks Perbandingan Harga"}
+          description={
+            satuKomoditas
+              ? `Nilai ${agregasiAman}, Kota Bandung`
+              : "Semua seri dimulai dari 100 pada titik awal yang tersedia."
+          }
+          summary={
+            satuKomoditas
+              ? `Grafik harga ${namaDipilih[0]} dari ${formatTanggal(dari)} sampai ${formatTanggal(sampai)}.`
+              : `Grafik indeks perbandingan ${namaDipilih.join(", ")}.`
+          }
+          table={
+            <TrendTable
+              data={dataGrafik}
+              series={seri}
+              mode={satuKomoditas ? "harga" : "indeks"}
+            />
+          }
+          footer={
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Metric
+                label="Rata-rata"
+                value={
+                  satuKomoditas
+                    ? formatRupiah(ringkas.rataRata)
+                    : Number(ringkas.rataRata ?? 0).toFixed(1)
+                }
+                hint={satuKomoditas ? undefined : "Indeks"}
+              />
+              <Metric
+                label="Tertinggi"
+                value={
+                  satuKomoditas
+                    ? formatRupiah(ringkas.tertinggi)
+                    : Number(ringkas.tertinggi ?? 0).toFixed(1)
+                }
+                hint={titikTertinggi ? formatTanggal(titikTertinggi.tanggal) : undefined}
+              />
+              <Metric
+                label="Perubahan periode"
+                value={formatPersenBertanda(perubahan)}
+                hint={satuKomoditas ? "Harga awal ke akhir" : "Indeks awal ke akhir"}
+              />
+            </div>
+          }
+          source="Sumber: Bank Indonesia – PIHPS Nasional"
+        >
+          <TrendChart
+            data={dataGrafik}
+            series={seri}
+            periods={pita}
+            mode={satuKomoditas ? "harga" : "indeks"}
+            showArea={satuKomoditas}
+            height={340}
+          />
+        </ChartCard>
+      </Section>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-ink-muted">
+      <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-sm leading-5 text-ink-muted">
         <p>
           Hari libur dan akhir pekan tidak memiliki data. Garis tidak disambung melewati nilai
           kosong.
         </p>
         <a
           href="/info"
-          className="inline-flex items-center gap-1 font-medium text-primary-700 hover:underline"
+          className="inline-flex min-h-11 items-center gap-1 font-medium text-primary-700 hover:underline"
         >
-          Sumber dan metode <ArrowUpRight size={14} />
+          Sumber dan metode <ArrowUpRight size={16} aria-hidden="true" />
         </a>
-      </div>
+      </footer>
     </>
   );
 }

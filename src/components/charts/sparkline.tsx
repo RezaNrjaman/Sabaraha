@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 
-export function Sparkline({
+/** Grafik mini di dalam sel tabel: garis tipis + titik terakhir. */
+export function SparklineMini({
   data,
   width = 112,
   height = 36,
@@ -15,8 +16,11 @@ export function Sparkline({
 }) {
   if (data.length < 2) {
     return (
-      <span className={cn("text-sm text-ink-muted", className)} aria-label="Data grafik mini belum cukup">
-        -
+      <span
+        className={cn("text-sm text-ink-muted", className)}
+        aria-label="Data grafik mini belum cukup"
+      >
+        –
       </span>
     );
   }
@@ -35,7 +39,7 @@ export function Sparkline({
     .join(" ");
 
   const naik = values[values.length - 1] >= values[0];
-  const stroke = naik ? "#B3261E" : "#1E7A3E";
+  const stroke = naik ? "stroke-naik" : "stroke-turun";
 
   return (
     <svg
@@ -43,12 +47,12 @@ export function Sparkline({
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label={`${label}: ${data.length} titik`}
+      aria-label={`${label}: ${data.length} titik, arah ${naik ? "naik" : "turun"}`}
       className={cn("overflow-visible", className)}
     >
       <polyline
         fill="none"
-        stroke={stroke}
+        className={stroke}
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -58,7 +62,7 @@ export function Sparkline({
         cx={width - padding}
         cy={height - padding - ((values[values.length - 1] - min) / span) * (height - padding * 2)}
         r="2.5"
-        fill={stroke}
+        className={stroke}
       />
     </svg>
   );

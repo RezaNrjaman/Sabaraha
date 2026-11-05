@@ -1,6 +1,7 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import {
   Area,
   CartesianGrid,
@@ -14,6 +15,7 @@ import {
   YAxis,
 } from "recharts";
 
+import { Legend } from "@/components/ui/legend";
 import { formatBulan, formatCompactRupiah, formatRupiah, formatTanggal, formatTanggalPendek } from "@/lib/format";
 import type { SeriesConfig, TrendPoint } from "@/lib/chart";
 import type { Periode } from "@/lib/types";
@@ -27,6 +29,44 @@ const warnaPeriode: Record<string, string> = {
   "Natal–Tahun Baru": "#1F6FA8",
   "Musim Hujan": "#0E7490",
 };
+
+/**
+ * Label teks di atas pita periode. Baris bergantian agar pita yang berdekatan
+ * tidak saling menimpa, dan teks tidak melewati tepi kanan area grafik.
+ */
+function LabelPita({
+  viewBox,
+  value,
+  warna,
+  urutan,
+  lebarGrafik,
+}: {
+  viewBox?: { x: number; y: number; width: number; height: number };
+  value?: string | number;
+  warna: string;
+  urutan: number;
+  lebarGrafik: number;
+}): ReactNode {
+  if (!viewBox || value === null || value === undefined || lebarGrafik <= 0) return null;
+  const teks = String(value);
+  const perkiraan = teks.length * 6.4;
+  const batasKanan = lebarGrafik - 12;
+  const muat = viewBox.x + perkiraan <= batasKanan;
+  const x = muat ? viewBox.x : Math.min(viewBox.x + viewBox.width, batasKanan);
+  const y = viewBox.y + 14 + (urutan % 2) * 16;
+  return (
+    <text
+      x={x}
+      y={y}
+      fontSize={12}
+      fill={warna}
+      textAnchor={muat ? "start" : "end"}
+      aria-hidden="true"
+    >
+      {teks}
+    </text>
+  );
+}
 
 function TooltipIsi({
   active,
@@ -58,14 +98,15 @@ function TooltipIsi({
           >
             <span className="flex items-center gap-1.5 text-ink-muted">
               <span
-                className="size-2 rounded-full"
+                aria-hidden="true"
+                className="size-2.5 rounded-[3px]"
                 style={{ backgroundColor: item.color ?? "#2B7A4B" }}
               />
               {String(item.name ?? item.dataKey)}
             </span>
-            <span className="font-semibold text-ink">
+            <span className="font-semibold tabular-nums text-ink">
               {item.value === null || item.value === undefined
-                ? "-"
+                ? "–"
                 : valueFormatter(Number(item.value))}
             </span>
           </div>
@@ -97,6 +138,20 @@ export function TrendChart({
   xFormat?: "tanggal" | "bulan";
 }) {
   const gradientId = useId().replace(/:/g, "");
+  const wadah = useRef<HTMLDivElement>(null);
+  const [lebar, setLebar] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = wadah.current;
+    if (!el) return;
+    const amati = new ResizeObserver((entries) => {
+      setLebar(Math.round(entries[0].contentRect.width));
+    });
+    amati.observe(el);
+    setLebar(Math.round(el.clientWidth));
+    return () => amati.disconnect();
+  }, []);
+
   const labelPeriode = new Set<string>();
   const xFormatter = xFormat === "bulan" ? formatBulan : formatTanggalPendek;
   const valueFormatter = (value: number) =>
@@ -105,9 +160,9 @@ export function TrendChart({
     mode === "indeks" ? String(Math.round(value)) : formatCompactRupiah(value);
 
   return (
-    <div className={cn("min-w-0", className)}>
+    <div ref={wadah} className={cn("min-w-0", className)}>
       <ResponsiveContainer width="100%" height={height}>
-        <ComposedChart data={data} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
+        <ComposedChart data={data} margin={{ top: 12, right: 12, left: 0, bottom: 0 }} accessibilityLayer>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={series[0]?.color ?? "#2B7A4B"} stopOpacity={0.22} />
@@ -118,6 +173,7 @@ export function TrendChart({
           {periods.map((periode) => {
             const warna = warnaPeriode[periode.nama] ?? "#7C3AED";
             const tampilkanLabel = !labelPeriode.has(periode.nama);
+            const urutan = labelPeriode.size;
             if (tampilkanLabel) labelPeriode.add(periode.nama);
             return (
               <ReferenceArea
@@ -128,14 +184,9 @@ export function TrendChart({
                 fillOpacity={0.12}
                 strokeOpacity={0}
                 label={
-                  tampilkanLabel
-                    ? {
-                        value: periode.nama,
-                        position: "insideTopLeft",
-                        fill: warna,
-                        fontSize: 12,
-                      }
-                    : undefined
+                  tampilkanLabel ? (
+                    <LabelPita warna={warna} urutan={urutan} lebarGrafik={lebar} />
+                  ) : undefined
                 }
               />
             );
@@ -205,68 +256,14 @@ export function TrendChart({
           ))}
         </ComposedChart>
       </ResponsiveContainer>
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2" aria-label="Legenda grafik">
-        {series.map((item) => (
-          <span key={item.key} className="inline-flex items-center gap-2 text-sm text-ink-muted">
-            <span
-              className="inline-block h-0.5 w-5 rounded-full"
-              style={{
-                backgroundColor: item.color,
-                backgroundImage: item.dashed
-                  ? "repeating-linear-gradient(90deg, transparent 0 3px, #fff 3px 5px)"
-                  : undefined,
-              }}
-            />
-            {item.label}
-          </span>
-        ))}
-        {spikes.length > 0 ? (
-          <span className="inline-flex items-center gap-2 text-sm text-naik">
-            <span className="size-2.5 rounded-full border-2 border-white bg-naik shadow" />
-            Lonjakan
-          </span>
-        ) : null}
-      </div>
+      <Legend
+        items={[
+          ...series.map((item) => ({ label: item.label, warna: item.color })),
+          ...(spikes.length > 0
+            ? [{ label: "Lonjakan", warna: "#B3261E", bentuk: "titik" as const }]
+            : []),
+        ]}
+      />
     </div>
-  );
-}
-
-export function tableHargaUntukTren(
-  data: TrendPoint[],
-  series: SeriesConfig[],
-  mode: "harga" | "indeks" = "harga",
-) {
-  return (
-    <table className="w-full min-w-[640px] border-collapse text-sm">
-      <thead className="sticky top-0 bg-bg text-left text-ink-muted">
-        <tr>
-          <th className="px-3 py-2 font-medium">Tanggal</th>
-          {series.map((item) => (
-            <th key={item.key} className="px-3 py-2 font-medium">
-              {item.label}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((row) => (
-          <tr key={row.tanggal} className="border-t border-line">
-            <td className="px-3 py-2">{formatTanggal(row.tanggal)}</td>
-            {series.map((item) => {
-              const value = row[item.key];
-              return (
-                <td key={item.key} className="px-3 py-2">
-                  {value === null || value === undefined
-                    ? "-"
-                    : mode === "indeks"
-                      ? `${Number(value).toFixed(1)}`
-                      : formatRupiah(Number(value))}
-                </td>
-              );
-            })}
-          </tr>
-        ))}
-      </tbody>
-    </table>
   );
 }
