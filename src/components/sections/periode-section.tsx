@@ -21,19 +21,14 @@ import {
 import { buildQuery, pilihanParam } from "@/lib/query";
 import type { HargaPoint, InfoData, Komoditas, Periode, StatistikPeriode } from "@/lib/types";
 
-export const metadata = {
-  title: "Periode & Musiman",
-};
-
 const WARNA_TAHUN = ["#2B7A4B", "#C2410C", "#1F6FA8", "#7C3AED", "#A16207", "#0E7490"];
 const URUTAN_PERIODE = ["Ramadan", "Idul Fitri", "Idul Adha", "Natal-Tahun Baru", "Musim Hujan"];
 
-export default async function PeriodePage({
-  searchParams,
+export async function PeriodeSection({
+  sp,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  sp: Record<string, string | string[] | undefined>;
 }) {
-  const sp = await searchParams;
   const info = await fetchApiData<InfoData>("/info");
   const semuaKomoditas = await fetchApiData<Komoditas[]>("/komoditas");
   const periode = await fetchApiData<Periode[]>("/periode");
@@ -72,7 +67,7 @@ export default async function PeriodePage({
         eyebrow="Pola musiman"
         title="Periode dan Musiman"
         description="Lihat bagaimana harga bergerak menjelang Ramadan, Lebaran, Idul Adha, Natal–Tahun Baru, dan musim hujan."
-        actions={<ResetFilter href="/periode" />}
+        actions={<ResetFilter href="/?bagian=periode" />}
       />
 
       <Card className="mb-6">
@@ -136,7 +131,7 @@ export default async function PeriodePage({
             <EmptyState
               title="Statistik periode belum tersedia"
               description="Pilih komoditas atau periode lain."
-              actionHref="/periode"
+              actionHref="/?bagian=periode"
             />
           ) : (
             <div className="overflow-x-auto">

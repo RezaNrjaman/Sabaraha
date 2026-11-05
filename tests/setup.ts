@@ -17,6 +17,13 @@ Object.defineProperty(globalThis, "ResizeObserver", {
   value: ResizeObserverMock,
 });
 
+/** jsdom tidak mengimplementasikan scrollIntoView; dipakai tab dashboard. */
+Object.defineProperty(Element.prototype, "scrollIntoView", {
+  writable: true,
+  configurable: true,
+  value: () => {},
+});
+
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: (query: string) => ({

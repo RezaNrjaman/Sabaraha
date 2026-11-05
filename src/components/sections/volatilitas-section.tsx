@@ -18,16 +18,11 @@ import { buildQuery, hariSebelum } from "@/lib/query";
 import type { HargaPoint, InfoData, Komoditas, Volatilitas } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export const metadata = {
-  title: "Volatilitas",
-};
-
-export default async function VolatilitasPage({
-  searchParams,
+export async function VolatilitasSection({
+  sp,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  sp: Record<string, string | string[] | undefined>;
 }) {
-  const sp = await searchParams;
   const info = await fetchApiData<InfoData>("/info");
   const semuaKomoditas = await fetchApiData<Komoditas[]>("/komoditas");
   const utama = semuaKomoditas.filter((item) => item.is_utama);
@@ -62,7 +57,7 @@ export default async function VolatilitasPage({
         eyebrow="Stabilitas harga"
         title="Volatilitas Harga"
         description="Komoditas dengan harga paling sering dan paling jauh berubah. Semakin tinggi koefisien variasi, semakin berisiko harga naik-turun."
-        actions={<ResetFilter href="/volatilitas" />}
+        actions={<ResetFilter href="/?bagian=volatilitas" />}
       />
 
       <Card className="mb-6">
@@ -106,13 +101,13 @@ export default async function VolatilitasPage({
             <Activity className="shrink-0 text-primary-600" size={22} />
           </div>
           {volatilitas.length === 0 ? (
-            <EmptyState title="Belum ada data volatilitas" actionHref="/volatilitas" />
+            <EmptyState title="Belum ada data volatilitas" actionHref="/?bagian=volatilitas" />
           ) : (
             <ol className="space-y-4">
               {volatilitas.map((item, index) => (
                 <li key={item.komoditas_id}>
                   <Link
-                    href={`/volatilitas?komoditas=${encodeURIComponent(item.nama)}&hari=${hari}`}
+                    href={`/?bagian=volatilitas&komoditas=${encodeURIComponent(item.nama)}&hari=${hari}`}
                     className={cn(
                       "block rounded-ctl p-2 hover:bg-primary-50",
                       item.nama === namaAman && "bg-primary-50",

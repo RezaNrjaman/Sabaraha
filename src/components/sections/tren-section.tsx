@@ -15,10 +15,6 @@ import { formatPersenBertanda, formatRupiah, formatTanggal } from "@/lib/format"
 import { buildQuery, hariSebelum, pilihanParam } from "@/lib/query";
 import type { Agregasi, HargaPoint, InfoData, Komoditas, Periode } from "@/lib/types";
 
-export const metadata = {
-  title: "Tren Harga",
-};
-
 const WARNA_SERI = ["#2B7A4B", "#C2410C", "#1F6FA8", "#7C3AED", "#A16207"];
 const OPSI_HARI = [30, 90, 365] as const;
 const OPSI_AGREGASI: Array<{ value: Agregasi; label: string }> = [
@@ -27,12 +23,11 @@ const OPSI_AGREGASI: Array<{ value: Agregasi; label: string }> = [
   { value: "bulanan", label: "Bulanan" },
 ];
 
-export default async function TrenPage({
-  searchParams,
+export async function TrenSection({
+  sp,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  sp: Record<string, string | string[] | undefined>;
 }) {
-  const sp = await searchParams;
   const info = await fetchApiData<InfoData>("/info");
   const semuaKomoditas = await fetchApiData<Komoditas[]>("/komoditas");
   const periode = await fetchApiData<Periode[]>("/periode");
@@ -70,7 +65,7 @@ export default async function TrenPage({
           title="Belum ada data pada rentang ini"
           description="Coba perluas rentang waktu atau pilih komoditas lain."
         />
-        <EmptyState actionHref="/tren" />
+        <EmptyState actionHref="/?bagian=tren" />
       </>
     );
   }
@@ -122,7 +117,7 @@ export default async function TrenPage({
             ? `Harga ${agregasiAman} dari ${formatTanggal(dari)} sampai ${formatTanggal(sampai)}. Hari tanpa data tidak diisi nol.`
             : "Perbandingan memakai indeks: harga awal tiap komoditas dianggap 100, sehingga harga berbeda tetap bisa dibandingkan."
         }
-        actions={<ResetFilter href="/tren" />}
+        actions={<ResetFilter href="/?bagian=tren" />}
       />
 
       <Card className="mb-6">

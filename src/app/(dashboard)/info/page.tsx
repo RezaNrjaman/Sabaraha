@@ -217,7 +217,7 @@ export default async function InfoPage() {
       <p className="mt-6 text-sm leading-5 text-ink-muted">
         Sumber harga: {info.sumber}. Data terakhir: {formatTanggal(info.tanggal_data_terakhir)}.
         Halaman ini tidak memuat kunci akses atau kredensial basis data. Ingin kembali ke
-        ringkasan? <Link href="/" className="font-medium text-primary-700 underline-offset-2 hover:underline">Buka Ringkasan</Link>.
+        dashboard? <Link href="/" className="font-medium text-primary-700 underline-offset-2 hover:underline">Buka Dashboard</Link>.
       </p>
     </>
   );

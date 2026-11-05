@@ -2,21 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Info, Wheat } from "lucide-react";
+import { Wheat } from "lucide-react";
 
 import { navItems, navAktif } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const itemInfo = navItems.find((item) => item.href === "/info");
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[76px] flex-col border-r border-line bg-surface px-3 py-5 md:flex lg:w-[260px] lg:px-4">
       <Link
         href="/"
         className="mb-8 flex min-h-12 items-center gap-3 rounded-ctl px-1.5 lg:px-2"
-        aria-label="Sabaraha, kembali ke ringkasan"
+        aria-label="Sabaraha, kembali ke dashboard"
       >
         <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-ctl bg-primary-600 text-white">
           <Wheat size={22} />
@@ -46,20 +45,14 @@ export function Sidebar() {
             >
               <Icon size={20} strokeWidth={1.75} className="shrink-0" />
               <span className="hidden lg:block">{item.label}</span>
+              <span className="sr-only lg:hidden">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-4 border-t border-line pt-3">
-        <Link
-          href={itemInfo?.href ?? "/info"}
-          className="flex min-h-12 items-center gap-3 rounded-ctl px-3 text-sm font-medium text-ink-muted hover:bg-primary-50 hover:text-primary-700"
-        >
-          <Info size={19} className="shrink-0" />
-          <span className="hidden lg:block">Sumber dan Metode</span>
-        </Link>
-        <p className="mt-2 hidden px-3 text-sm leading-5 text-ink-muted lg:block">
+      <div className="mt-4 hidden border-t border-line pt-3 lg:block">
+        <p className="px-3 text-sm leading-5 text-ink-muted">
           Data harga: Bank Indonesia – PIHPS Nasional.
         </p>
       </div>

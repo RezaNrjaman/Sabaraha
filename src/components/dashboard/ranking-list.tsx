@@ -58,7 +58,7 @@ export function RankingList({
               return (
                 <li key={item.komoditas_id}>
                   <Link
-                    href={`/tren?komoditas=${encodeURIComponent(item.nama)}`}
+                    href={`/?bagian=tren&komoditas=${encodeURIComponent(item.nama)}`}
                     className="group block rounded-ctl p-1 hover:bg-primary-50"
                   >
                     <div className="flex items-center justify-between gap-3">

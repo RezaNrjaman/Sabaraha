@@ -33,7 +33,9 @@ export function Topbar({
           <span className="text-lg font-bold text-primary-700">Sabaraha</span>
         </Link>
 
-        <form action="/tren" method="get" className="order-3 w-full sm:order-2 sm:max-w-sm md:order-1 md:flex-1">
+        <form action="/" method="get" className="order-3 w-full sm:order-2 sm:max-w-sm md:order-1 md:flex-1">
+          {/* Pencarian membuka bagian Tren Harga di halaman dashboard tunggal. */}
+          <input type="hidden" name="bagian" value="tren" />
           <label className="relative block">
             <span className="sr-only">Cari komoditas</span>
             <Search

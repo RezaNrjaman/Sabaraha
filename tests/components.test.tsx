@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { ChartFrame } from "@/components/charts/chart-frame";
+import { BagianTabs } from "@/components/dashboard/bagian-tabs";
 import { PriceTable } from "@/components/dashboard/price-table";
 import { StatusChip } from "@/components/ui/status-chip";
 import type { HargaTerkini } from "@/lib/types";
@@ -88,5 +89,31 @@ describe("PriceTable", () => {
     await user.type(screen.getByRole("searchbox"), "cabai");
     expect(screen.getAllByText("Cabai Merah").length).toBeGreaterThan(0);
     expect(screen.queryByText("Beras")).not.toBeInTheDocument();
+  });
+});
+
+describe("BagianTabs", () => {
+  it("menandai tab aktif lalu menggesernya masuk pandangan", () => {
+    const gulir = vi.spyOn(Element.prototype, "scrollIntoView");
+    render(<BagianTabs aktif="prediksi" />);
+
+    expect(screen.getByRole("link", { name: /prediksi/i })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /ringkasan/i })).not.toHaveAttribute("aria-current");
+    expect(gulir).toHaveBeenCalledWith({ block: "nearest", inline: "nearest" });
+  });
+
+  it("menautkan tiap tab ke halaman dashboard tunggal, bukan rute lama", () => {
+    render(<BagianTabs aktif="tren" />);
+
+    expect(screen.getByRole("link", { name: /ringkasan/i })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: /tren harga/i })).toHaveAttribute(
+      "href",
+      "/?bagian=tren",
+    );
+    expect(screen.getByRole("link", { name: /ketersediaan/i })).toHaveAttribute(
+      "href",
+      "/?bagian=ketersediaan",
+    );
+    expect(screen.getByRole("navigation", { name: /bagian dashboard/i })).toBeInTheDocument();
   });
 });

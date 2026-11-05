@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { normalisasiBagian } from "@/lib/navigation";
 import {
   buildQuery,
   bulanSebelum,
@@ -37,5 +38,23 @@ describe("query", () => {
   it("memilih parameter pertama atau fallback", () => {
     expect(pilihanParam(["Cabai Merah", "Beras"], "Beras")).toBe("Cabai Merah");
     expect(pilihanParam(undefined, "Beras")).toBe("Beras");
+  });
+});
+
+describe("normalisasiBagian", () => {
+  it("menerima enam bagian dashboard", () => {
+    for (const kunci of ["tren", "periode", "volatilitas", "ketersediaan", "prediksi"]) {
+      expect(normalisasiBagian(kunci)).toBe(kunci);
+    }
+    expect(normalisasiBagian(undefined)).toBe("ringkasan");
+  });
+
+  it("mengambil nilai pertama bila parameter berulang", () => {
+    expect(normalisasiBagian(["prediksi", "tren"])).toBe("prediksi");
+  });
+
+  it("jatuh ke ringkasan untuk nilai yang tidak dikenal", () => {
+    expect(normalisasiBagian("halaman-lain")).toBe("ringkasan");
+    expect(normalisasiBagian("")).toBe("ringkasan");
   });
 });

@@ -19,10 +19,6 @@ import type {
   StatusKetersediaan,
 } from "@/lib/types";
 
-export const metadata = {
-  title: "Ketersediaan",
-};
-
 // Rentang data ketersediaan. "riwayat" memakai bulan riwayat terakhir,
 // "proyeksi" menampilkan simulasi mendatang s.d. Des 2032.
 const OPSI_RENTANG = [
@@ -35,12 +31,11 @@ const OPSI_RENTANG = [
 
 const RENTANG_SAH = OPSI_RENTANG.map((opsi) => opsi.value);
 
-export default async function KetersediaanPage({
-  searchParams,
+export async function KetersediaanSection({
+  sp,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  sp: Record<string, string | string[] | undefined>;
 }) {
-  const sp = await searchParams;
   const info = await fetchApiData<InfoData>("/info");
   const semuaKomoditas = await fetchApiData<Komoditas[]>("/komoditas");
   const status = await fetchApiData<StatusKetersediaan>("/ketersediaan/status-terkini");
@@ -98,7 +93,7 @@ export default async function KetersediaanPage({
         eyebrow="Pasokan pangan"
         title="Ketersediaan Pangan"
         description="Status neraca, pasokan, kebutuhan, dan ketahanan stok per bulan."
-        actions={<ResetFilter href="/ketersediaan" />}
+        actions={<ResetFilter href="/?bagian=ketersediaan" />}
       />
 
       <Card className="mb-6">
@@ -182,7 +177,7 @@ export default async function KetersediaanPage({
 
       {rows.length === 0 ? (
         <div className="mt-6">
-          <EmptyState actionHref="/ketersediaan" />
+          <EmptyState actionHref="/?bagian=ketersediaan" />
         </div>
       ) : (
         <>

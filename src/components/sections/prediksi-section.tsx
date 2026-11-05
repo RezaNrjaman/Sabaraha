@@ -27,15 +27,11 @@ import type {
   StatistikPeriode,
 } from "@/lib/types";
 
-export const metadata = {
-  title: "Prediksi",
-};
-
 const URUTAN_PERIODE = ["Ramadan", "Idul Fitri", "Idul Adha", "Natal-Tahun Baru", "Musim Hujan"];
 
 /**
  * Uji mundur per kejadian. Harga harian dan tanggal kejadian diambil dari API,
- * lalu dihitung di halaman ini karena API tidak menyediakan endpoint backtest.
+ * lalu dihitung di bagian ini karena API tidak menyediakan endpoint backtest.
  */
 async function ambilUjiMundur(namaKomoditas: string, namaPeriode: string) {
   const info = await fetchApiData<InfoData>("/info");
@@ -51,12 +47,11 @@ async function ambilUjiMundur(namaKomoditas: string, namaPeriode: string) {
   return hitungBacktest(harga, daftarPeriode, namaKomoditas, namaPeriode);
 }
 
-export default async function PrediksiPage({
-  searchParams,
+export async function PrediksiSection({
+  sp,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  sp: Record<string, string | string[] | undefined>;
 }) {
-  const sp = await searchParams;
   const semuaKomoditas = await fetchApiData<Komoditas[]>("/komoditas");
   const statistik = await fetchApiData<StatistikPeriode[]>("/periode/statistik");
   const utama = semuaKomoditas.filter((item) => item.is_utama);
@@ -95,7 +90,7 @@ export default async function PrediksiPage({
         eyebrow="Perkiraan berbasis pola historis"
         title="Prediksi Kenaikan Harga"
         description="Perkiraan persen kenaikan harga pada periode berikutnya. Nilai tengah adalah median kejadian historis, bukan jaminan."
-        actions={<ResetFilter href="/prediksi" />}
+        actions={<ResetFilter href="/?bagian=prediksi" />}
       />
 
       <Card className="mb-6">
@@ -129,7 +124,7 @@ export default async function PrediksiPage({
         <EmptyState
           title="Prediksi belum tersedia"
           description="Periode ini belum memiliki cukup kejadian historis. Coba periode lain."
-          actionHref="/prediksi"
+          actionHref="/?bagian=prediksi"
         />
       ) : (
         <>
@@ -233,7 +228,7 @@ export default async function PrediksiPage({
               <EmptyState
                 title="Kejadian belum cukup"
                 description="Uji mundur membutuhkan minimal dua kejadian periode dengan data harga yang lengkap."
-                actionHref="/prediksi"
+                actionHref="/?bagian=prediksi"
               />
             ) : (
               <>
@@ -313,7 +308,7 @@ export default async function PrediksiPage({
                       <tr key={nama} className="border-b border-line/80 hover:bg-primary-50/60">
                         <td className="px-2 py-3">
                           <Link
-                            href={`/prediksi?komoditas=${encodeURIComponent(nama)}&periode=${encodeURIComponent(periodeTabel)}`}
+                            href={`/?bagian=prediksi&komoditas=${encodeURIComponent(nama)}&periode=${encodeURIComponent(periodeTabel)}`}
                             className="flex items-center gap-3 font-semibold text-ink hover:text-primary-700"
                           >
                             <CommodityIcon nama={nama} />
