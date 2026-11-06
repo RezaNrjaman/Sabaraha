@@ -57,7 +57,7 @@ export async function VolatilitasSection({
 
   const items: BarisBilah[] = volatilitas.map((item, index) => ({
     label: item.nama,
-    sublabel: `${index + 1}. ${formatAngka(item.jumlah_titik, 0)} titik · rata-rata ${formatRupiah(item.rata_rata)}`,
+    sublabel: `${index + 1}. ${formatAngka(item.jumlah_titik, 0)} titik · ${formatRupiah(item.rata_rata)}`,
     ikon: <CommodityIcon nama={item.nama} />,
     teks: formatPersen(item.koefisien_variasi_persen),
     lebar: (item.koefisien_variasi_persen / maksimal) * 100,

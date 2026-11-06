@@ -61,9 +61,12 @@ export function Chip({
 export function StatusChip({
   status,
   className,
+  compact = false,
 }: {
   status: string;
   className?: string;
+  /** Tanpa ikon dan hemat ruang, untuk kartu yang sangat sempit. */
+  compact?: boolean;
 }) {
   const tone = statusTone[status] ?? "netral";
   const Icon =
@@ -82,7 +85,11 @@ export function StatusChip({
                 : Info;
 
   return (
-    <Chip tone={tone} className={className} icon={<Icon size={14} strokeWidth={2.2} />}>
+    <Chip
+      tone={tone}
+      className={cn(compact && "whitespace-nowrap px-2.5", className)}
+      icon={compact ? null : <Icon size={14} strokeWidth={2.2} />}
+    >
       {status}
     </Chip>
   );

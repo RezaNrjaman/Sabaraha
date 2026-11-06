@@ -218,7 +218,7 @@ export async function KetersediaanSection({
                 >
                   <p className="font-semibold leading-5 text-ink">{item.nama}</p>
                   <div className="mt-2">
-                    <StatusChip status={item.status_neraca} />
+                    <StatusChip status={item.status_neraca} compact />
                   </div>
                   <p className="mt-2 text-sm leading-5 text-ink-muted">
                     Rasio neraca {formatPersen(item.rasio_neraca_persen)}

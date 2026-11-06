@@ -65,7 +65,7 @@ export function RankingList({
             Tidak ada komoditas yang {tab} pada 30 hari terakhir.
           </p>
         ) : (
-          <HBarList items={items} ariaLabel={`Komoditas paling ${tab} dalam 30 hari`} />
+          <HBarList items={items} ariaLabel={`Komoditas paling ${tab} dalam 30 hari`} bilah="tipis" />
         )}
       </div>
     </div>

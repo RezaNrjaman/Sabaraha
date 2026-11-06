@@ -34,10 +34,13 @@ export function HBarList({
   items,
   ariaLabel,
   className,
+  bilah = "tebal",
 }: {
   items: BarisBilah[];
   ariaLabel: string;
   className?: string;
+  /** "tipis" = 8 px radius penuh (desain.md §8.6), "tebal" = 14 px sudut 4 px. */
+  bilah?: "tebal" | "tipis";
 }) {
   return (
     <ol aria-label={ariaLabel} className={cn("space-y-3", className)}>
@@ -52,11 +55,11 @@ export function HBarList({
                 item.aktif && "bg-primary-50",
               )}
             >
-              <IsiBaris item={item} />
+              <IsiBaris item={item} bilah={bilah} />
             </a>
           ) : (
             <div className={cn(gridBaris, item.aktif && "bg-primary-50")}>
-              <IsiBaris item={item} />
+              <IsiBaris item={item} bilah={bilah} />
             </div>
           )}
         </li>
@@ -65,7 +68,7 @@ export function HBarList({
   );
 }
 
-function IsiBaris({ item }: { item: BarisBilah }) {
+function IsiBaris({ item, bilah }: { item: BarisBilah; bilah: "tebal" | "tipis" }) {
   return (
     <>
       <div className="flex min-w-0 items-center gap-2.5">
@@ -83,10 +86,17 @@ function IsiBaris({ item }: { item: BarisBilah }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(item.lebar)}
-        className="h-[14px] w-full overflow-hidden rounded bg-line"
+        className={cn(
+          "w-full overflow-hidden bg-line",
+          bilah === "tipis" ? "h-2 rounded-full" : "h-[14px] rounded",
+        )}
       >
         <div
-          className={cn("h-full rounded", toneBar[item.tone ?? "primary"])}
+          className={cn(
+            "h-full",
+            bilah === "tipis" ? "rounded-full" : "rounded",
+            toneBar[item.tone ?? "primary"],
+          )}
           style={{ width: `${Math.max(2, Math.min(100, item.lebar))}%` }}
         />
       </div>
