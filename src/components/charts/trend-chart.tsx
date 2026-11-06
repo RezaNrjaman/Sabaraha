@@ -36,19 +36,18 @@ const warnaPeriode: Record<string, string> = {
  */
 function LabelPita({
   viewBox,
-  value,
+  teks,
   warna,
   urutan,
   lebarGrafik,
 }: {
   viewBox?: { x: number; y: number; width: number; height: number };
-  value?: string | number;
+  teks: string;
   warna: string;
   urutan: number;
   lebarGrafik: number;
 }): ReactNode {
-  if (!viewBox || value === null || value === undefined || lebarGrafik <= 0) return null;
-  const teks = String(value);
+  if (!viewBox || lebarGrafik <= 0) return null;
   const perkiraan = teks.length * 6.4;
   const batasKanan = lebarGrafik - 12;
   const muat = viewBox.x + perkiraan <= batasKanan;
@@ -185,7 +184,7 @@ export function TrendChart({
                 strokeOpacity={0}
                 label={
                   tampilkanLabel ? (
-                    <LabelPita warna={warna} urutan={urutan} lebarGrafik={lebar} />
+                    <LabelPita teks={periode.nama} warna={warna} urutan={urutan} lebarGrafik={lebar} />
                   ) : undefined
                 }
               />

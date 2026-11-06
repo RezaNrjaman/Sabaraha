@@ -29,8 +29,10 @@ export function InfoIconButton({
       <span
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute top-10 z-20 w-64 rounded-ctl bg-ink px-3 py-2 text-sm font-normal leading-5 text-white opacity-0 shadow-card transition-opacity group-hover:opacity-100 group-focus-within:opacity-100",
-          align === "right" ? "right-0" : "left-1/2 -translate-x-1/2",
+          "pointer-events-none absolute top-10 z-20 hidden w-64 rounded-ctl bg-ink px-3 py-2 text-sm font-normal shadow-card leading-5 text-white group-hover:block group-focus-within:block",
+          align === "right"
+            ? "right-0"
+            : "left-1/2 -translate-x-1/2 max-md:left-0 max-md:translate-x-0",
         )}
       >
         {text}

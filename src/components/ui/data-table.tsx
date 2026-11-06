@@ -58,7 +58,7 @@ export function DataTable<T>({
 
   return (
     <div className={cn("w-full", className)}>
-      <div className="w-full overflow-x-auto">
+      <div className="hidden w-full overflow-x-auto md:block">
         <table
           className="w-full border-collapse text-base tabular-nums"
           style={{ minWidth: minLebar }}
@@ -142,7 +142,7 @@ export function DataTable<T>({
       </div>
 
       {/* Versi ponsel: satu baris menjadi satu kartu. */}
-      <ul className="hidden max-md:block">
+      <ul className="md:hidden">
         {baris.map((barisItem, index) => (
           <li
             key={`ponsel-${kunci(barisItem, index)}`}

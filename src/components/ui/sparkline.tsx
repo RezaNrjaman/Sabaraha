@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { ChartTooltip } from "@/components/ui/chart-tooltip";
+import { formatAngka } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export type TitikSparkline = { label: string; nilai: number | null };
@@ -22,13 +23,17 @@ const LABEL_Y = 52;
  */
 export function Sparkline({
   data,
-  format,
   ariaLabel,
+  desimal = 0,
+  satuanTeks = "",
   className,
 }: {
   data: TitikSparkline[];
-  format: (nilai: number) => string;
   ariaLabel: string;
+  /** Jumlah desimal pada angka tooltip (dipakai formatAngka). */
+  desimal?: number;
+  /** Teks setelah angka, mis. " komoditas". */
+  satuanTeks?: string;
   className?: string;
 }) {
   const wadah = useRef<HTMLDivElement>(null);
@@ -179,7 +184,8 @@ export function Sparkline({
             >
               <span className="block text-ink-muted">{isi[dipilih].label}</span>
               <span className="block font-semibold tabular-nums text-ink">
-                {format(isi[dipilih].nilai)}
+                {formatAngka(isi[dipilih].nilai, desimal)}
+                {satuanTeks}
               </span>
             </ChartTooltip>
           ) : null}

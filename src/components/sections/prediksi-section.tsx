@@ -134,7 +134,7 @@ export async function PrediksiSection({
       isi: (row) => (
         <a
           href={`/?bagian=prediksi&komoditas=${encodeURIComponent(row.nama)}&periode=${encodeURIComponent(periodeTabel)}`}
-          className="flex items-center gap-3 font-semibold text-ink hover:text-primary-700"
+          className="flex min-h-11 items-center gap-3 font-semibold text-ink hover:text-primary-700"
         >
           <CommodityIcon nama={row.nama} />
           <span className="min-w-0">

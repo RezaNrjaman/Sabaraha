@@ -148,7 +148,7 @@ export async function RingkasanSection() {
               indeksCocok && nilaiAkhirIndeks !== null ? (
                 <Sparkline
                   data={deretIndeks}
-                  format={(nilai) => formatAngka(nilai, 1)}
+                  desimal={1}
                   ariaLabel={`Indeks harga pangan 12 bulan terakhir: dari ${deretIndeks[0]?.label} sampai ${deretIndeks.at(-1)?.label}, nilai terakhir ${formatAngka(nilaiAkhirIndeks, 1)}`}
                 />
               ) : undefined
@@ -184,7 +184,7 @@ export async function RingkasanSection() {
               defisitCocok ? (
                 <Sparkline
                   data={deretDefisit}
-                  format={(nilai) => `${formatAngka(nilai, 0)} komoditas`}
+                  satuanTeks=" komoditas"
                   ariaLabel={`Jumlah komoditas defisit 12 bulan terakhir: dari ${deretDefisit[0]?.label} sampai ${deretDefisit.at(-1)?.label}, terakhir ${data.komoditas_defisit_bulan_terbaru.jumlah} komoditas`}
                 />
               ) : undefined
@@ -300,12 +300,18 @@ export async function RingkasanSection() {
         note="Peringkat perubahan 30 hari terakhir dan harga terkini tiap komoditas utama."
       >
         <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-12">
-          <Card className="xl:col-span-5">
+          <Card className="flex flex-col xl:col-span-5">
             <CardHeader
               title="Paling Naik & Paling Turun"
               description="Perubahan harga 30 hari terakhir"
             />
-            <RankingList naik={naik} turun={turun} />
+            <div className="flex-1">
+              <RankingList naik={naik} turun={turun} />
+            </div>
+            <p className="mt-5 border-t border-line pt-3 text-sm leading-5 text-ink-muted">
+              Layanan data menampilkan tiga komoditas dengan perubahan terbesar tiap arah.
+              Daftar lengkap 30 hari tersedia di tab Tren.
+            </p>
           </Card>
 
           <Card className="xl:col-span-7">

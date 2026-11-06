@@ -1,6 +1,6 @@
 import { CalendarDays } from "lucide-react";
 
-import { GroupedBarChart } from "@/components/charts/grouped-bar-chart";
+import { LineGroupChart } from "@/components/charts/line-group-chart";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { TrendTable } from "@/components/charts/trend-table";
 import { FilterChips, ResetFilter } from "@/components/filters/filter-chips";
@@ -229,10 +229,10 @@ export async function PeriodeSection({
               />
             }
           >
-            <GroupedBarChart
+            <LineGroupChart
               data={dataTahunan}
               xKey="bulan"
-              bars={tahun.map((item, index) => ({
+              garis={tahun.map((item, index) => ({
                 key: item,
                 label: item,
                 color: WARNA_TAHUN[index] ?? "#2B7A4B",
